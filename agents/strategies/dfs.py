@@ -1,66 +1,75 @@
 class DFSStrategy:
     def __init__(self):
+        # Biến lưu số lượng node đã mở rộng để phục vụ thống kê, so sánh
         self.nodes_expanded = 0
 
     def get_action(self, state):
         """
-        Trả về action (dx, dy) cho bước tiếp theo
+        Duyệt đồ thị bằng thuật toán Depth-First Search (Graph Search).
+        Trả về action (d_row, d_col) cho bước đi tiếp theo.
         """
-        start = state.pacman
+        # Ép kiểu tọa độ về dạng tuple để có thể hash và đưa vào Set
+        start = tuple(state.predator_pos)
+        goal = tuple(state.grey_pos)
 
-        # 👉 Tạm thời target là ghost (bạn có thể đổi sang food)
-        goal = state.ghost
-
-        # Stack: (position, path)
+        # Stack chứa các tuple: (vị_trí_hiện_tại, danh_sách_các_hành_động_để_đến_đây)
         stack = [(start, [])]
+        
+        # Set lưu các tọa độ đã duyệt để tránh vòng lặp vô hạn
         visited = set()
-
+        
+        # Reset biến log trước mỗi lượt (turn)
         self.nodes_expanded = 0
 
+        # Các hướng di chuyển: Lên, Xuống, Trái, Phải
+        # Đặc thù của DFS (Stack): Hướng được thêm vào cuối cùng sẽ được duyệt đầu tiên.
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
         while stack:
-            current, path = stack.pop()
+            current_pos, path = stack.pop()
+
+            # Bỏ qua nếu node này đã được xử lý
+            if current_pos in visited:
+                continue
+                
+            # Đánh dấu đã duyệt và tăng biến đếm log
+            visited.add(current_pos)
             self.nodes_expanded += 1
 
-            if current == goal:
+            # Kiểm tra trạng thái đích
+            if current_pos == goal:
                 if path:
-                    return path[0]  # chỉ lấy bước đầu tiên
-                return (0, 0)
+                    # Chỉ trả về bước đi ĐẦU TIÊN để agent dịch chuyển 1 ô trên UI
+                    return path[0]  
+                return (0, 0) # Nếu đã đứng trùng ô với mục tiêu
 
-            if current in visited:
-                continue
+            r, c = current_pos
+            
+            # Mở rộng các ô lân cận (Successors)
+            for dr, dc in directions:
+                next_pos = (r + dr, c + dc)
 
-            visited.add(current)
-
-            for move in self.get_neighbors(current, state):
-                nx = current[0] + move[0]
-                ny = current[1] + move[1]
-                next_pos = (nx, ny)
-
-                if next_pos not in visited:
-                    stack.append((next_pos, path + [move]))
-
-        # nếu không tìm được đường
+                # Nếu ô tiếp theo đi được và chưa từng duyệt qua
+                if self.is_valid_move(next_pos, state) and next_pos not in visited:
+                    # Nối thêm hành động mới vào hành trình hiện tại
+                    new_path = path + [(dr, dc)]
+                    stack.append((next_pos, new_path))
+        
+        # Trường hợp bị kẹt (xung quanh toàn tường) không tìm thấy đường
         return (0, 0)
 
-    def get_neighbors(self, pos, state):
+    def is_valid_move(self, pos, state):
         """
-        Trả về list các hướng đi hợp lệ (dx, dy)
+        Kiểm tra tính hợp lệ của ô lưới tiếp theo.
         """
-        directions = [
-            (0, 1),   # xuống
-            (1, 0),   # phải
-            (0, -1),  # lên
-            (-1, 0)   # trái
-        ]
-
-        valid_moves = []
-
-        for dx, dy in directions:
-            nx = pos[0] + dx
-            ny = pos[1] + dy
-
-            # check không đâm tường
-            if not state.is_wall(nx, ny):
-                valid_moves.append((dx, dy))
-
-        return valid_moves
+        r, c = pos
+        
+        # 1. Không vượt quá ranh giới bản đồ
+        if r < 0 or r >= state.rows or c < 0 or c >= state.cols:
+            return False
+            
+        # 2. Không đi xuyên tường (Nếu state có định nghĩa tường)
+        if hasattr(state, 'is_wall') and state.is_wall(r, c):
+            return False
+            
+        return True
