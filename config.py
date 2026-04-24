@@ -4,7 +4,7 @@
 class ScreenConfig:
     WIDTH = 800
     HEIGHT = 600
-    FPS = 10
+    FPS = 5
     TITLE = "Predator vs Prey Simulation"
 
 

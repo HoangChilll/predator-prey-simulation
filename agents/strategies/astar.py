@@ -57,8 +57,8 @@ class PredatorAStar:
 
         path.reverse()
 
-        if len(path) > 1:
-            return path[1]  # trả về tọa độ luôn
+        if len(path) > 0:
+            return path[0]  # trả về bước đầu tiên từ vị trí hiện tại
         else:
             return None
 
