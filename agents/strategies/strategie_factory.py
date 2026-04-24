@@ -14,6 +14,7 @@ def get_prey_strategy(name):
     if name == "bfs":
         return PreyBFS()
     elif name == "dfs":
-        return PreyBFS()
+        return PreyBFS() # temporary fallback
     elif name == "astar":
-        return PreyBFS()
+        from agents.strategies.astar import PreyAStar
+        return PreyAStar()

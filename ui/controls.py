@@ -32,10 +32,23 @@ class GameControls:
         return None
 
     def update(self, simulator):
-        should_step = not self.paused or self.step_requested
-
+        if not hasattr(self, 'step_timer'):
+            self.step_timer = 0
+            
+        from config import GameConfig, ScreenConfig
+        frames_per_step = ScreenConfig.FPS // GameConfig.SIMULATION_FPS
+        
+        should_step = False
+        
         if self.step_requested:
+            should_step = True
             self.step_requested = False
+            self.step_timer = 0
+        elif not self.paused:
+            self.step_timer += 1
+            if self.step_timer >= frames_per_step:
+                should_step = True
+                self.step_timer = 0
 
         if should_step:
             simulator.step()

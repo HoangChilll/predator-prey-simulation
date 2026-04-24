@@ -1,55 +1,60 @@
+import math
 import pygame
-from ui.screens.base_screen import BaseScreen
+from ui.effects import EffectsState, draw_animated_background, draw_particles, create_particle
+from ui.components import title_font, small_font, draw_button, get_button_scale, draw_exit_button
+from config import ScreenConfig
 
-class StartScreen(BaseScreen):
+class StartScreen:
     def __init__(self):
-        super().__init__()
-
-        # màu
-        self.bg_color = (30, 100, 130)
-        self.button_color = (240, 120, 50)
-        self.button_hover_color = (255, 150, 80)
-        self.text_color = (0, 0, 0)
-
-        # font
-        self.font = pygame.font.SysFont(None, 30)
-
-        # nút (ở giữa màn hình)
-        self.button_rect = pygame.Rect(0, 0, 150, 50)
-        self.button_rect.center = (400, 300)
+        self.start_button = pygame.Rect(400, 350, 200, 70)
+        self.exit_button = pygame.Rect(920, 20, 50, 50)
 
     def handle_events(self, events):
         mouse_pos = pygame.mouse.get_pos()
-
         for event in events:
             if event.type == pygame.QUIT:
                 return "QUIT"
-
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.button_rect.collidepoint(mouse_pos):
-                    return "MENU"  # chuyển sang menu
-
+                if self.exit_button.collidepoint(event.pos):
+                    return "QUIT"
+                if self.start_button.collidepoint(event.pos):
+                    EffectsState.particles.clear()
+                    return "MENU"
         return None
 
     def update(self):
         pass
 
     def draw(self, screen):
-        # nền
-        screen.fill(self.bg_color)
-
-        # hover effect
         mouse_pos = pygame.mouse.get_pos()
-        if self.button_rect.collidepoint(mouse_pos):
-            color = self.button_hover_color
-        else:
-            color = self.button_color
+        
+        # Animated background
+        draw_animated_background(screen, ScreenConfig.WIDTH, ScreenConfig.HEIGHT, EffectsState.animation_time * 2, EffectsState.animation_time)
+        
+        # Particles
+        draw_particles(screen)
+        if EffectsState.animation_time % 5 == 0:
+            create_particle(mouse_pos[0], mouse_pos[1])
 
-        # vẽ nút
-        pygame.draw.rect(screen, color, self.button_rect)
+        # Overlay
+        overlay = pygame.Surface((ScreenConfig.WIDTH, ScreenConfig.HEIGHT))
+        overlay.set_alpha(100)
+        overlay.fill((20, 40, 80))
+        screen.blit(overlay, (0, 0))
 
-        # text "Bắt đầu"
-        text_surface = self.font.render("START", True, self.text_color)
-        text_rect = text_surface.get_rect(center=self.button_rect.center)
+        # Title animation
+        title_y = 180 + math.sin(EffectsState.animation_time * 0.02) * 5
+        title_text = title_font.render("Project AI Hust", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(ScreenConfig.WIDTH // 2, title_y))
+        screen.blit(title_text, title_rect)
 
-        screen.blit(text_surface, text_rect)
+        subtitle_text = small_font.render("Click Start to continue", True, (230, 230, 230))
+        subtitle_rect = subtitle_text.get_rect(center=(ScreenConfig.WIDTH // 2, 250))
+        screen.blit(subtitle_text, subtitle_rect)
+
+        hover = self.start_button.collidepoint(mouse_pos)
+        start_color = (255, 140, 0) if hover else (220, 120, 0)
+        scale = get_button_scale(hover)
+
+        draw_button(screen, self.start_button, "Start", start_color, radius=12, scale=scale)
+        draw_exit_button(screen, self.exit_button, mouse_pos)

@@ -2,10 +2,10 @@
 # SCREEN CONFIG
 # =========================
 class ScreenConfig:
-    WIDTH = 800
-    HEIGHT = 600
-    FPS = 5
-    TITLE = "Predator vs Prey Simulation"
+    WIDTH = 1000
+    HEIGHT = 1000
+    FPS = 60
+    TITLE = "Project AI Hust"
 
 
 # =========================
@@ -49,7 +49,7 @@ class StrategyConfig:
 class GameConfig:
     MAX_STEPS = 500
     CAPTURE_DISTANCE = 0   # 0 = cùng ô là bắt
-
+    SIMULATION_FPS = 2     # Tốc độ chạy thuật toán (bước/giây)
     TURN_BASED = True
 
 

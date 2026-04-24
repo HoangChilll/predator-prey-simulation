@@ -2,9 +2,8 @@ import pygame
 from ui.screens.start_screen import StartScreen
 from ui.screens.menu_screen import MenuScreen
 from ui.screens.game_screen import GameScreen
-from ui.screens.pause_screen import PauseScreen
-from ui.screens.game_over_screen import GameOverScreen
 from config import ScreenConfig
+from ui.effects import update_effects
 
 def main():
     pygame.init()
@@ -28,11 +27,20 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
+        # --- effects ---
+        update_effects()
+
         # --- input ---
         result = current_screen.handle_events(events)
 
         # 🔥 xử lý chuyển màn hình
-        if result == "MENU":
+        if result == "QUIT":
+            running = False
+            
+        elif result == "START":
+            current_screen = screens["START"]
+
+        elif result == "MENU":
             current_screen = screens["MENU"]
 
         elif isinstance(result, tuple):
@@ -41,21 +49,13 @@ def main():
             if screen_name == "GAME":
                 current_screen = GameScreen(config)
 
-            elif screen_name == "PAUSE":
-                current_screen = PauseScreen(config)
-
-            elif screen_name == "RESUME":
-                current_screen = config
-                if hasattr(current_screen, "controls"):
-                    current_screen.controls.paused = False
+        # Màn hình mới có thể trả về chuỗi trực tiếp
+        elif result == "GAME":
+            # Note: with our structure, GAME is usually a tuple ("GAME", config)
+            pass
 
         # --- update ---
-        update_result = current_screen.update()
-
-        if isinstance(update_result, tuple):
-            screen_name, config = update_result
-            if screen_name == "GAME_OVER":
-                current_screen = GameOverScreen(config)
+        current_screen.update()
 
         # --- draw ---
         current_screen.draw(screen)
