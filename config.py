@@ -3,7 +3,7 @@
 # =========================
 class ScreenConfig:
     WIDTH = 1000
-    HEIGHT = 1000
+    HEIGHT = 800
     FPS = 60
     TITLE = "Project AI Hust"
 

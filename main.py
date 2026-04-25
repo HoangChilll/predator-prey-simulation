@@ -1,7 +1,6 @@
 import pygame
-from ui.screens.start_screen import StartScreen
-from ui.screens.menu_screen import MenuScreen
-from ui.screens.game_screen import GameScreen
+from ui.screens import StartScreen, MenuScreen, GameScreen, GameOverScreen
+
 from config import ScreenConfig
 from ui.effects import update_effects
 
@@ -48,6 +47,8 @@ def main():
 
             if screen_name == "GAME":
                 current_screen = GameScreen(config)
+            elif screen_name == "GAME_OVER":
+                current_screen = GameOverScreen(config)
 
         # Màn hình mới có thể trả về chuỗi trực tiếp
         elif result == "GAME":

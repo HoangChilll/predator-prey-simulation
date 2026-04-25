@@ -39,9 +39,9 @@ class GameScreen:
 
         # ===== RENDER =====
         self.grid_x = 80
-        self.grid_y = 120
-        self.grid_width = 600
-        self.grid_height = 600
+        self.grid_y = 90
+        self.grid_width = 550
+        self.grid_height = 550
         self.cell_size = min(self.grid_width // self.grid_size, self.grid_height // self.grid_size)
 
         self.renderer = Renderer(
@@ -54,11 +54,11 @@ class GameScreen:
         self.controls = GameControls(config)
         self.game_over = False
         self.game_over_timer = 0
+        self.game_over_result = None
 
-        # Simulation buttons
-        self.pause_button = pygame.Rect(750, 450, 120, 60)
-        self.stop_button = pygame.Rect(750, 540, 120, 60)
-        self.back_button = pygame.Rect(40, 40, 140, 55)
+        self.pause_button = pygame.Rect(700, 400, 120, 55)
+        self.stop_button = pygame.Rect(700, 480, 120, 55)
+        self.back_button = pygame.Rect(40, 20, 140, 50)
         self.exit_button = pygame.Rect(920, 20, 50, 50)
 
     # =========================
@@ -94,9 +94,9 @@ class GameScreen:
         # Tự động chuyển trang sau khi bắt được
         if self.game_over:
             self.game_over_timer += 1
-            if self.game_over_timer > 180:  # 3 giây ở 60 FPS
+            if self.game_over_timer > 120:  # 2 giây ở 60 FPS
                 EffectsState.particles.clear()
-                return "MENU"
+                return ("GAME_OVER", self.game_over_result)
         else:
             control_result = self.controls.handle_events(events)
             if control_result:
@@ -112,6 +112,19 @@ class GameScreen:
             result = self.controls.update(self.simulator)
             if not self.simulator.preys or (isinstance(result, tuple) and result[0] == "GAME_OVER"):
                 self.game_over = True
+                # Build result snapshot for game over screen
+                import copy
+                self.game_over_result = {
+                    "grid_size": self.grid_size,
+                    "grid_cells": copy.deepcopy(self.grid.cells),
+                    "predator_strategy": self.predator_strategy_name,
+                    "prey_strategy": self.prey_strategy_name,
+                    "predator_steps": self.simulator.predator_steps,
+                    "predator_pos": self.simulator.predators[0] if self.simulator.predators else None,
+                    "prey_pos": self.simulator.preys[0] if self.simulator.preys else (
+                        self.simulator.predators[0] if self.simulator.predators else None
+                    ),
+                }
             return result
         return None
 
