@@ -1,1 +1,0 @@
- # vẽ grid bằng pygame
