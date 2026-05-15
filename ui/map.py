@@ -1,12 +1,13 @@
 import pygame
 
+from ui.stage2 import create_ui
+from ui.constants import WIDTH, HEIGHT, GRID_AREA
 # SCREEN
-
-WIDTH = 800
-HEIGHT = 600
-GRID_AREA = int(WIDTH * 0.75)
-FPS = 60
-
+pygame.init()
+font = pygame.font.SysFont("Arial", 30)
+title_font = pygame.font.SysFont("Arial", 40)
+btn_rect = pygame.Rect(220, 200, 160, 60)
+buttons, dropdowns = create_ui()
 
 
 # CELL CALC 
@@ -14,13 +15,8 @@ FPS = 60
 def get_cell(size):
     return GRID_AREA // size
 
-
-# VALID CHECK
-
 def valid(pos, size):
     return True
-
-
 # DRAW GRID
 
 def draw_grid(screen, grid):
@@ -47,28 +43,28 @@ def draw_grid(screen, grid):
 
 # DRAW AGENTS (FIXED)
 
-def draw_agents(screen, prey, predator, size):
+def draw_agents(screen, grey, prey, size):
     cell = get_cell(size)
-    # PREY (green)
-    if valid(prey, size):
+    # GREY (green)
+    if valid(grey, size):
         pygame.draw.circle(
             screen,
             (0, 255, 0),
             (
-                prey[1] * cell + cell // 2,
-                prey[0] * cell + cell // 2
+                grey[1] * cell + cell // 2,
+                grey[0] * cell + cell // 2
             ),
             cell // 3
         )
 
-    # PREDATOR (red)
-    if valid(predator, size):
+    # PREY (red)
+    if valid(prey, size):
         pygame.draw.circle(
             screen,
             (255, 0, 0),
             (
-                predator[1] * cell + cell // 2,
-                predator[0] * cell + cell // 2
+                prey[1] * cell + cell // 2,
+                prey[0] * cell + cell // 2
             ),
             cell // 3
         )

@@ -1,5 +1,5 @@
 import pygame
-from ui.map import draw_grid, draw_agents, WIDTH, HEIGHT, GRID_AREA
+from ui.constants import WIDTH
 class Button:
     def __init__(self, x, y, w, h, text):
         self.rect = pygame.Rect(x, y, w, h)

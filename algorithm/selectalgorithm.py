@@ -5,10 +5,10 @@ from algorithm.dfs import predator_dfs_move,prey_dfs_move
 
 ALGORITHMS = {
     "random": random_move,
-    "predator_greedy": predatorgreedy,
-    "prey_greedy": preygreedy,
-    "predator_dfs": predator_dfs_move,
-    "prey_dfs": prey_dfs_move
+    "p_greedy": predatorgreedy,
+    "g_greedy": preygreedy,
+    "p_dfs": predator_dfs_move,
+    "g_dfs": prey_dfs_move
 }
 def selectAlgorithm(name):
     if name not in ALGORITHMS:

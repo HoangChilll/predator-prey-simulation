@@ -1,6 +1,7 @@
-
-from ui.map import GRID_AREA
-
+WIDTH = 800
+HEIGHT = 600
+GRID_AREA = int(WIDTH * 0.75)
+FPS = 60
 def log(msg):
     print(f"[DEBUG] {msg}")
     
