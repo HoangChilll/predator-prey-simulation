@@ -24,6 +24,7 @@ clock = pygame.time.Clock()
 
 
 
+
 # Các tham số ban đầu 
 sim = None  #trạng thái
 grid = None 
@@ -91,24 +92,32 @@ while running:
                 if end_btn.click(event.pos):
                   state = STATE_CONFIG
                   log("END -> CONFIG")
-    #  UPDATE 
+    #  UPDATE
     if state == STATE_SIM and sim:
         if sim["running"] and now - last_step > step_delay:
 
+            def caught(grey, prey, catch_range=1):
+                return abs(grey[0] - prey[0]) + abs(grey[1] - prey[1]) <= catch_range
+
             if sim["turn"] == "grey":
                 sim["grey"] = selectAlgorithm(config["grey_algo"])(grid, sim["grey"], sim["prey"])
-                print("GREY:", sim["grey"])  # in tọa độ grey
-                sim["turn"] = "prey"
-                
+                print("GREY:", sim["grey"])
+                if caught(sim["grey"], sim["prey"]):
+                    sim["running"] = False
+                    print("GAME OVER - Prey caught grey!")
+                else:
+                    sim["turn"] = "prey"
 
             else:
-                sim["prey"] = selectAlgorithm(config["prey_algo"])(grid, sim["prey"], sim["grey"])
-                print("PREY:", sim["prey"])  # in tọa độ prey
-                sim["turn"] = "grey"
-            # 2 agents gặp nhau
-            if sim["grey"] == sim["prey"]:
-               sim["running"] = False
-               print("GAME OVER")
+                for _ in range(2):
+                    sim["prey"] = selectAlgorithm(config["prey_algo"])(grid, sim["prey"], sim["grey"])
+                    print("PREY:", sim["prey"])
+                    if caught(sim["grey"], sim["prey"]):
+                        sim["running"] = False
+                        print("GAME OVER - Prey caught grey!")
+                        break
+                if sim["running"]:
+                    sim["turn"] = "grey"
             sim["time"] += 1
             last_step = now
 
@@ -135,6 +144,15 @@ while running:
 
         pause_btn.draw(screen, font)
         end_btn.draw(screen, font)
+
+        if not sim["running"]:
+            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 150))
+            screen.blit(overlay, (0, 0))
+            go_text = title_font.render("GAME OVER", True, (255, 80, 80))
+            screen.blit(go_text, go_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 30)))
+            sub_text = font.render("Predator caught prey!", True, (255, 255, 255))
+            screen.blit(sub_text, sub_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20)))
 
     pygame.display.flip()
 

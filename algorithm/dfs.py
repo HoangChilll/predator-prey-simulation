@@ -143,15 +143,9 @@ def prey_dfs_move(grid, self_pos, opponent_pos):
     max_distance = -1
 
 
-    # Prey xét 4 hướng + đứng yên
-    directions = DIRECTIONS + [(0, 0)]
-
-
-    for dx, dy in directions:
+    for dx, dy in DIRECTIONS:
         candidate = (start[0] + dx, start[1] + dy)
 
-
-        # Chỉ xét ô hợp lệ
         if is_valid(candidate, grid):
             dist = heuristic(candidate, predator)
 

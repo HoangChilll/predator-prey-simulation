@@ -7,16 +7,13 @@ DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 
 def is_valid(grid, pos):
-    """
-    Kiểm tra ô có hợp lệ không:
-    - nằm trong map
-    - không phải tường, quy ước 1 = WALL
-    """
     x, y = pos
+    rows = len(grid)
+    cols = len(grid[0])
     return (
-        0 <= x < grid.rows and
-        0 <= y < grid.cols and
-        grid.cells[x][y] != 1
+        0 <= x < rows and
+        0 <= y < cols and
+        grid[x][y] != 1
     )
 
 
@@ -139,16 +136,10 @@ def preygreedy(grid, self_pos, opponent_pos):
     max_distance = -1
 
 
-    # Prey xét 4 hướng + đứng yên
-    directions = DIRECTIONS + [(0, 0)]
-
-
-    for dx, dy in directions:
+    for dx, dy in DIRECTIONS:
         candidate = (start[0] + dx, start[1] + dy)
 
-
-        # Chỉ xét ô hợp lệ
-        if is_valid(candidate, grid):
+        if is_valid(grid, candidate):
             dist = heuristic(candidate, predator)
 
 
