@@ -1,35 +1,4 @@
-# 4 hướng di chuyển: lên, xuống, trái, phải
-DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-
-
-
-def is_valid(pos, grid):
-    """
-    Kiểm tra ô có đi được không.
-
-
-    Input:
-    - pos: tọa độ (x, y)
-    - grid: ma trận bản đồ
-
-
-    Quy ước:
-    - 1 là tường
-    - khác 1 là ô đi được
-    """
-    x, y = pos
-    rows = len(grid)
-    cols = len(grid[0])
-
-
-    return (
-        0 <= x < rows and
-        0 <= y < cols and
-        grid[x][y] != 1
-    )
-
-
+from algorithm.selectalgorithm import is_valid,DIRECTIONS
 
 
 def heuristic(a, b):

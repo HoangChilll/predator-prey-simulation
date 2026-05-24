@@ -267,7 +267,7 @@ def grey_move(grid, self_pos, opponent_pos):
         scored_moves.append((score, move, area, ap_penalty))
         print(f"  [Grey] cân nhắc {move}: area={area}, "
               f"dist_pred={dist_to_pred}, voronoi={voronoi_area}, "
-              f"ap_penalty={ap_penalty:.1f} → score={score:.2f}")
+              f"ap_penalty={ap_penalty:.1f} -> score={score:.2f}")
  
     # --- Chọn bước tốt nhất ---
     # Ưu tiên bước không phải ngõ cụt (ap_penalty < ngưỡng nặng)
@@ -279,10 +279,10 @@ def grey_move(grid, self_pos, opponent_pos):
     else:
         # Mọi bước đều nguy hiểm → chọn bước ít tệ nhất (area lớn nhất)
         best = max(scored_moves, key=lambda x: x[2])
-        print("[Grey] Mọi bước đều là AP/ngõ cụt → chọn vùng lớn nhất")
+        print("[Grey] Moi buoc deu la AP/ngo cut -> chon vung lon nhat")
  
     chosen_move = best[1]
-    print(f"[Grey] pos={grey_pos} → move={chosen_move} | "
+    print(f"[Grey] pos={grey_pos} -> move={chosen_move} | "
           f"area={best[2]} | ap_penalty={best[3]:.1f} | score={best[0]:.2f}")
  
     return tuple(chosen_move)

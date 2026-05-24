@@ -1,31 +1,6 @@
 import heapq
 from collections import deque
- 
- 
-DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
- 
- 
-def is_valid(pos, grid):
-    """
-    Kiểm tra ô có đi được không.
- 
-    Input:
-    - pos: tọa độ (x, y)
-    - grid: ma trận bản đồ
- 
-    Quy ước:
-    - 1 là tường
-    - khác 1 là ô đi được
-    """
-    x, y = pos
-    rows = len(grid)
-    cols = len(grid[0])
- 
-    return (
-        0 <= x < rows and
-        0 <= y < cols and
-        grid[x][y] != 1
-    )
+from algorithm.selectalgorithm import is_valid,DIRECTIONS
  
  
 # ============================================================
@@ -201,9 +176,7 @@ def astar_next_step(grid, start, goal, blocked=None):
     return start  # Không tìm được đường
  
  
-# ============================================================
-# BƯỚC 4: Hàm chính — Predator Move
-# ============================================================
+# thuật toán cho kẻ săn mồi 
 def _bfs_dist(grid, start, goal):
     """BFS distance từ start đến goal, trả về inf nếu không đến được."""
     if start == goal:
@@ -222,61 +195,34 @@ def _bfs_dist(grid, start, goal):
     return float('inf')
 
 
-def predator_move(grid, self_pos, opponent_pos):
+def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
     """
-    Heuristic A* cho Predator.
+    Tìm bước đi tối ưu giảm vùng sống của Grey.
 
-    Chiến lược (theo thứ tự ưu tiên):
-      1. Grey kề cạnh → bắt ngay.
-      2. Tìm articulation point mà Predator đến trước Grey (theo BFS thực)
-         → Dùng A* dẫn đường đến AP đó để nhốt Grey.
-      3. Không có AP khả thi → chọn bước đi thu hẹp tối đa vùng Grey.
-      4. Fallback: A* đuổi thẳng Grey.
-
-    Args:
-        grid:         bản đồ game (2D list)
-        self_pos:     vị trí Predator hiện tại (tuple)
-        opponent_pos: vị trí Grey hiện tại (tuple)
+    Thử theo thứ tự:
+      1. AP — chặn điểm thắt cổ chai mà Predator đến trước Grey.
+      2. Shrink — bước đi thu hẹp tối đa diện tích Grey có thể đến.
 
     Returns:
-        tuple (x, y) — vị trí Predator sẽ di chuyển đến
+        tuple (x, y) nếu tối ưu được, None nếu không thể.
     """
-    pred_pos = self_pos
-    grey_pos = opponent_pos
-
-    # --- Các bước đi hợp lệ của Predator ---
-    px, py = pred_pos
-    valid_moves = [
-        (px + dx, py + dy)
-        for dx, dy in DIRECTIONS
-        if is_valid((px + dx, py + dy), grid)
-    ]
-    if not valid_moves:
-        return pred_pos
-
-    # Ưu tiên 1: Grey kề cạnh → bắt ngay
-    if grey_pos in valid_moves:
-        print(f"[Predator] CATCH | pos={pred_pos} → grey={grey_pos}")
-        return grey_pos
-
-    # --- Tìm articulation points trong vùng Grey ---
+    # Chiến lược 1: AP
     art_points = find_articulation_points(grid, grey_pos, blocked={pred_pos})
-
-    # Lọc AP bằng BFS distance thực (không dùng Manhattan vì maze có tường)
     valuable_aps = [
         ap for ap in art_points
         if _bfs_dist(grid, pred_pos, ap) <= _bfs_dist(grid, grey_pos, ap)
     ]
 
-    # Ưu tiên 2: Có AP khả thi → dùng A* dẫn đường đến AP gần nhất
     if valuable_aps:
-        best_ap = min(valuable_aps, key=lambda ap: _bfs_dist(grid, pred_pos, ap))
+        best_ap = min(valuable_aps, key=lambda ap: _bfs_dist(grid, grey_pos, ap))
         next_step = astar_next_step(grid, pred_pos, best_ap)
         if next_step != pred_pos:
-            print(f"[Predator] AP={best_ap} | pos={pred_pos} → step={next_step}")
-            return next_step
+            # Chỉ dùng AP nếu bước đó không làm predator xa grey hơn
+            if _bfs_dist(grid, next_step, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
+                print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={next_step}")
+                return next_step
 
-    # Ưu tiên 3: Thu hẹp tối đa vùng Grey
+    # Chiến lược 2: Shrink
     current_grey_area = len(flood_fill(grid, grey_pos, blocked={pred_pos}))
     best_move = None
     best_reduction = 0
@@ -289,13 +235,55 @@ def predator_move(grid, self_pos, opponent_pos):
             best_move = move
 
     if best_move is not None:
-        print(f"[Predator] SHRINK | pos={pred_pos} → move={best_move} | reduction={best_reduction}")
+        print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
         return best_move
 
-    # Ưu tiên 4: Fallback A* đuổi thẳng Grey
+    return None  # Không thể tối ưu vùng sống
+
+
+def predator_move(grid, self_pos, opponent_pos):
+    """
+    Heuristic A* cho Predator.
+
+    Chiến lược:
+      1. Grey kề cạnh → bắt ngay.
+      2. Tối ưu được vùng sống Grey (AP hoặc Shrink) → dùng chiến lược đó.
+      3. Không tối ưu được → A* mặc định đuổi thẳng Grey (đường chim bay).
+
+    Args:
+        grid:         bản đồ game (2D list)
+        self_pos:     vị trí Predator hiện tại (tuple)
+        opponent_pos: vị trí Grey hiện tại (tuple)
+
+    Returns:
+        tuple (x, y) — vị trí Predator sẽ di chuyển đến
+    """
+    pred_pos = self_pos
+    grey_pos = opponent_pos
+
+    px, py = pred_pos
+    valid_moves = [
+        (px + dx, py + dy)
+        for dx, dy in DIRECTIONS
+        if is_valid((px + dx, py + dy), grid)
+    ]
+    if not valid_moves:
+        return pred_pos
+
+    # Ưu tiên 1: Grey kề cạnh → bắt ngay
+    if grey_pos in valid_moves:
+        print(f"[Predator] CATCH | pos={pred_pos} -> grey={grey_pos}")
+        return grey_pos
+
+    # Ưu tiên 2: Tối ưu được vùng sống → dùng chiến lược AP / Shrink
+    optimize_move = _get_optimize_move(grid, pred_pos, grey_pos, valid_moves)
+    if optimize_move is not None:
+        return optimize_move
+
+    # Ưu tiên 3: Không tối ưu được → A* mặc định (đường chim bay)
     astar_move = astar_next_step(grid, pred_pos, grey_pos)
     if astar_move != pred_pos:
-        print(f"[Predator] FALLBACK A* | pos={pred_pos} → move={astar_move}")
+        print(f"[Predator] FALLBACK A* | pos={pred_pos} -> move={astar_move}")
         return astar_move
 
     return valid_moves[0]

@@ -1,21 +1,5 @@
 import heapq
-
-
-DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-
-
-
-def is_valid(grid, pos):
-    x, y = pos
-    rows = len(grid)
-    cols = len(grid[0])
-    return (
-        0 <= x < rows and
-        0 <= y < cols and
-        grid[x][y] != 1
-    )
-
+from algorithm.selectalgorithm import is_valid,DIRECTIONS
 
 
 
