@@ -1,24 +1,7 @@
 
 import heapq
 from collections import deque
-DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-
-
-
-def is_valid(grid, pos):
-    """
-    Kiểm tra ô có hợp lệ không:
-    - nằm trong map
-    - không phải tường, quy ước 1 = WALL
-    """
-    x, y = pos
-    return (
-        0 <= x < grid.rows and
-        0 <= y < grid.cols and
-        grid.cells[x][y] != 1
-    )
-
+from ui.constants import DIRECTIONS, is_valid
  
 def flood_fill(grid, start, blocked=None):
     """

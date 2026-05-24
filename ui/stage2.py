@@ -2,20 +2,18 @@ import pygame
 from ui.button import Button
 
 from ui.constants import WIDTH, HEIGHT, log
-from ui.grid import grid10x10,grid20x20_2,grid40,grid50x50, MAZE_20,MAZE_40,MAZE_50_1,MAZE_50_2
+from ui.grid import grid10x10,grid20x20_2 ,MAZE_20,grid20x20
 from ui.dropdown import Dropdown, toggle_dropdown, update_dropdown
 
 
 MATRICES = {
     "10_1": grid10x10,
     "20_2": grid20x20_2,
-    "40": grid40,
-    "50_0": grid50x50,
     "20": MAZE_20,
-    "40_2": MAZE_40,
-    "50_1": MAZE_50_1,
-    "50_2": MAZE_50_2
+    "20_1": grid20x20,
 
+    
+ 
 }
 
 def selectMatrix(name):
@@ -152,7 +150,7 @@ def create_ui():
     dropdowns = {
         "prey": Dropdown(["random", "p_dfs","p_greedy", "p_A*"], buttons[0].rect.x, buttons[0].rect.y + btn_height + 5),
         "grey": Dropdown([ "g_dfs","random","g_greedy"], buttons[1].rect.x, buttons[1].rect.y + btn_height + 5),
-        "grid": Dropdown(["10_1", "20_2", "40_2", "50_1", "50_2"], buttons[2].rect.x, buttons[2].rect.y + btn_height + 5),
+        "grid": Dropdown(["10_1", "20_2", "20_1","20"], buttons[2].rect.x, buttons[2].rect.y + btn_height + 5),
     }
     log("UI CREATED (buttons + dropdowns)")
     return buttons, dropdowns 

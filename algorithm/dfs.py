@@ -1,4 +1,4 @@
-from algorithm.selectalgorithm import is_valid,DIRECTIONS
+from ui.constants import DIRECTIONS, is_valid
 
 
 def heuristic(a, b):

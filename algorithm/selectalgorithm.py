@@ -3,6 +3,8 @@ from algorithm.greedy import predatorgreedy, preygreedy
 from algorithm.random import random_move
 from algorithm.dfs import predator_dfs_move,prey_dfs_move
 from algorithm.A_hes import predator_move
+ 
+ 
 
 ALGORITHMS = {
     "random": random_move,

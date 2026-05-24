@@ -1,24 +1,11 @@
 import heapq
 from collections import deque
-from algorithm.selectalgorithm import is_valid,DIRECTIONS
+from ui.constants import DIRECTIONS, is_valid
  
- 
-# ============================================================
-# BƯỚC 1: Flood Fill — đếm "không gian sống" của Grey
-# ============================================================
+ # thuật toán tìm không gian sống của grey
+ #start là vị trí xuất phát, blocked là vị trí của prey, grey không được đi vào 
 def flood_fill(grid, start, blocked=None):
-    """
-    Xuất phát từ 'start', lan ra tất cả ô có thể đến được
-    (như đổ nước — dừng lại ở tường hoặc ô bị chặn).
- 
-    Args:
-        grid:    bản đồ game
-        start:   vị trí xuất phát (tuple x, y)
-        blocked: tập hợp các ô coi như bị chặn (vd: vị trí Predator)
- 
-    Returns:
-        set các ô có thể đến được từ start
-    """
+
     if blocked is None:
         blocked = set()
  
@@ -33,28 +20,16 @@ def flood_fill(grid, start, blocked=None):
                 visited.add(nxt)
                 queue.append(nxt)
  
-    return visited  # tổng số ô = len(visited) = "không gian sống"
+    return visited  # tất cả các ô có thể đi được từ start hay không gian sống
  
  
-# ============================================================
-# BƯỚC 2: Tìm Articulation Points (điểm thắt cổ chai)
-# ============================================================
+
+# thuật toán tìm Articulation Points (điểm thắt cổ chai) hay điểm mà prey đến được đó thì grey sẽ bị nhốt
+# Dùng thuật toán Tarjan (DFS iterative để tránh RecursionError).
 def find_articulation_points(grid, start, blocked=None):
-    """
-    Tìm tất cả articulation points trong vùng Grey có thể đến.
-    Dùng thuật toán Tarjan (DFS iterative để tránh RecursionError).
- 
-    Articulation point = ô mà nếu xóa đi thì vùng bị chia làm 2 phần riêng.
-    → Đây là nơi Predator cần chặn để nhốt Grey.
- 
-    Args:
-        grid:    bản đồ game
-        start:   vị trí Grey
-        blocked: ô bị chặn (vd: vị trí Predator)
- 
-    Returns:
-        set các articulation points
-    """
+   
+
+
     if blocked is None:
         blocked = set()
  
@@ -116,30 +91,16 @@ def find_articulation_points(grid, start, blocked=None):
                             ap.add(pu)
  
     dfs_iterative(start)
-    return ap
+    return ap #trả về các điểm thắt cổ chai
  
  
-# ============================================================
-# BƯỚC 3: A* tìm đường ngắn nhất
-# ============================================================
+# A* mặc định nếu không có điểm thắt cổ chai
 def manhattan(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
  
  
 def astar_next_step(grid, start, goal, blocked=None):
-    """
-    Dùng A* tìm bước đi tiếp theo từ start đến goal.
-    Trả về ô kế tiếp trên đường đi ngắn nhất (không phải toàn bộ path).
- 
-    Args:
-        grid:    bản đồ game
-        start:   vị trí hiện tại của Predator
-        goal:    đích muốn đến (Grey hoặc articulation point)
-        blocked: ô không được đi qua
- 
-    Returns:
-        tuple (x, y) — bước tiếp theo; hoặc start nếu không có đường
-    """
+
     if blocked is None:
         blocked = set()
  
@@ -176,9 +137,9 @@ def astar_next_step(grid, start, goal, blocked=None):
     return start  # Không tìm được đường
  
  
-# thuật toán cho kẻ săn mồi 
+#A* cho prey
 def _bfs_dist(grid, start, goal):
-    """BFS distance từ start đến goal, trả về inf nếu không đến được."""
+    #BFS distance từ start đến goal, trả về inf nếu không đến được.
     if start == goal:
         return 0
     visited = {start}
@@ -194,19 +155,10 @@ def _bfs_dist(grid, start, goal):
                 queue.append((nxt, d + 1))
     return float('inf')
 
-
+#
 def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
-    """
-    Tìm bước đi tối ưu giảm vùng sống của Grey.
 
-    Thử theo thứ tự:
-      1. AP — chặn điểm thắt cổ chai mà Predator đến trước Grey.
-      2. Shrink — bước đi thu hẹp tối đa diện tích Grey có thể đến.
-
-    Returns:
-        tuple (x, y) nếu tối ưu được, None nếu không thể.
-    """
-    # Chiến lược 1: AP
+    # Chiến lược 1: AP tìm đến điểm thắt cổ chai
     art_points = find_articulation_points(grid, grey_pos, blocked={pred_pos})
     valuable_aps = [
         ap for ap in art_points
@@ -222,7 +174,7 @@ def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
                 print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={next_step}")
                 return next_step
 
-    # Chiến lược 2: Shrink
+    # Chiến lược 2: Shrink tìm đến điểm làm giảm không gian sống của grey
     current_grey_area = len(flood_fill(grid, grey_pos, blocked={pred_pos}))
     best_move = None
     best_reduction = 0
@@ -240,24 +192,8 @@ def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
 
     return None  # Không thể tối ưu vùng sống
 
-
+# thuật toán cho kẻ săn mồi, nếu tối ưu được vùng sống thì dùng không được thì dùng A* mặc định
 def predator_move(grid, self_pos, opponent_pos):
-    """
-    Heuristic A* cho Predator.
-
-    Chiến lược:
-      1. Grey kề cạnh → bắt ngay.
-      2. Tối ưu được vùng sống Grey (AP hoặc Shrink) → dùng chiến lược đó.
-      3. Không tối ưu được → A* mặc định đuổi thẳng Grey (đường chim bay).
-
-    Args:
-        grid:         bản đồ game (2D list)
-        self_pos:     vị trí Predator hiện tại (tuple)
-        opponent_pos: vị trí Grey hiện tại (tuple)
-
-    Returns:
-        tuple (x, y) — vị trí Predator sẽ di chuyển đến
-    """
     pred_pos = self_pos
     grey_pos = opponent_pos
 
@@ -270,17 +206,17 @@ def predator_move(grid, self_pos, opponent_pos):
     if not valid_moves:
         return pred_pos
 
-    # Ưu tiên 1: Grey kề cạnh → bắt ngay
+    #  Grey kề cạnh → bắt ngay
     if grey_pos in valid_moves:
         print(f"[Predator] CATCH | pos={pred_pos} -> grey={grey_pos}")
         return grey_pos
 
-    # Ưu tiên 2: Tối ưu được vùng sống → dùng chiến lược AP / Shrink
+    #  Tối ưu được vùng sống  dùng chiến lược AP / Shrink
     optimize_move = _get_optimize_move(grid, pred_pos, grey_pos, valid_moves)
     if optimize_move is not None:
         return optimize_move
 
-    # Ưu tiên 3: Không tối ưu được → A* mặc định (đường chim bay)
+    # Không tối ưu được dùng A* mặc định (đường chim bay)
     astar_move = astar_next_step(grid, pred_pos, grey_pos)
     if astar_move != pred_pos:
         print(f"[Predator] FALLBACK A* | pos={pred_pos} -> move={astar_move}")

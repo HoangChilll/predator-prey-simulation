@@ -1,6 +1,6 @@
 
 import random
-from algorithm.selectalgorithm import is_valid,DIRECTIONS
+from ui.constants import DIRECTIONS, is_valid
 def random_move(grid, self_pos, opponent_pos):
     x, y = self_pos
     print("USING CORRECT RANDOM_MOVE")
