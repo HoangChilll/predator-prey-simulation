@@ -70,13 +70,14 @@ while running:
 
                     state = STATE_SIM
 
-                    #  RESET SIM 
+                    #  RESET SIM
                     sim = {
                         "grey": (8, 9),
                         "prey": (0, 0),
                         "time": 0,
                         "running": True,
-                        "turn": "grey"  
+                        "turn": "grey",
+                        "grey_last_dir": None  # track last direction for momentum
                     }
 
                     grid = selectMatrix(config["grid"])
@@ -100,7 +101,17 @@ while running:
                 return abs(grey[0] - prey[0]) + abs(grey[1] - prey[1]) <= catch_range
 
             if sim["turn"] == "grey":
-                sim["grey"] = selectAlgorithm(config["grey_algo"])(grid, sim["grey"], sim["prey"])
+                algo = selectAlgorithm(config["grey_algo"])
+                old_grey = sim["grey"]
+                # truyền last_dir nếu algo là grey_A* (nhận 4 tham số)
+                try:
+                    sim["grey"] = algo(grid, old_grey, sim["prey"], sim["grey_last_dir"])
+                except TypeError:
+                    sim["grey"] = algo(grid, old_grey, sim["prey"])
+                # cập nhật last_dir
+                dr = sim["grey"][0] - old_grey[0]
+                dc = sim["grey"][1] - old_grey[1]
+                sim["grey_last_dir"] = (dr, dc) if (dr, dc) != (0, 0) else sim["grey_last_dir"]
                 print("GREY:", sim["grey"])
                 if caught(sim["grey"], sim["prey"]):
                     sim["running"] = False
@@ -112,10 +123,16 @@ while running:
                 for _ in range(2):
                     sim["prey"] = selectAlgorithm(config["prey_algo"])(grid, sim["prey"], sim["grey"])
                     print("PREY:", sim["prey"])
-                    if caught(sim["grey"], sim["prey"]):
+                    # Chỉ break giữa chừng khi đứng TRÙNG ô (range=0)
+                    # tránh break sớm khi chỉ liền kề grey sau bước 1
+                    if caught(sim["grey"], sim["prey"], catch_range=0):
                         sim["running"] = False
                         print("GAME OVER - Prey caught grey!")
                         break
+                # Sau khi đi đủ 2 bước, mới check liền kề (range=1)
+                if sim["running"] and caught(sim["grey"], sim["prey"]):
+                    sim["running"] = False
+                    print("GAME OVER - Prey caught grey!")
                 if sim["running"]:
                     sim["turn"] = "grey"
             sim["time"] += 1

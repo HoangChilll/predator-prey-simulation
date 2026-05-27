@@ -1,9 +1,10 @@
 
 from algorithm.greedy import predatorgreedy, preygreedy
+from algorithm.huyminimax import grey_minimax_shortest_path, prey_minimax_shortest_path
 from algorithm.random import random_move
 from algorithm.dfs import predator_dfs_move,prey_dfs_move
 from algorithm.A_hes import predator_move
- 
+from algorithm.A_heugrey import grey_move
  
 
 ALGORITHMS = {
@@ -13,6 +14,9 @@ ALGORITHMS = {
     "p_dfs": predator_dfs_move,
     "g_dfs": prey_dfs_move,
     "p_A*": predator_move,
+    "huy_minimax_prey": prey_minimax_shortest_path,
+    "huy_minimax_grey": grey_minimax_shortest_path,
+    "grey_A*": grey_move
 }
 def selectAlgorithm(name):
     if name not in ALGORITHMS:

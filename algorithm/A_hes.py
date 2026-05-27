@@ -187,10 +187,14 @@ def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
             best_move = move
 
     if best_move is not None:
-        print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
-        return best_move
+        # Chỉ dùng Shrink nếu bước đó không làm predator xa grey hơn
+        # (nhất quán với điều kiện guard của chiến lược AP)
+        if _bfs_dist(grid, best_move, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
+            print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
+            return best_move
+        print(f"[Predator] SHRINK SKIP (would move away from grey) | pos={pred_pos} -> skip={best_move} | reduction={best_reduction}")
 
-    return None  # Không thể tối ưu vùng sống
+    return None  # Không thể tối ưu → fallback A*
 
 # thuật toán cho kẻ săn mồi, nếu tối ưu được vùng sống thì dùng không được thì dùng A* mặc định
 def predator_move(grid, self_pos, opponent_pos):
