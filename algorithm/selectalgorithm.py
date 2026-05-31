@@ -5,6 +5,7 @@ from algorithm.random import random_move
 from algorithm.dfs import predator_dfs_move,prey_dfs_move
 from algorithm.A_hes import predator_move
 from algorithm.A_heugrey import grey_move
+from algorithm.Khanhaphabeta import prey_minimax_shortest_path, grey_minimax_shortest_path
  
 
 ALGORITHMS = {
@@ -16,7 +17,9 @@ ALGORITHMS = {
     "p_A*": predator_move,
     "huy_minimax_prey": prey_minimax_shortest_path,
     "huy_minimax_grey": grey_minimax_shortest_path,
-    "grey_A*": grey_move
+    "grey_A*": grey_move,
+    "K_mini_prey": prey_minimax_shortest_path,
+    "K_mini_grey": grey_minimax_shortest_path
 }
 def selectAlgorithm(name):
     if name not in ALGORITHMS:

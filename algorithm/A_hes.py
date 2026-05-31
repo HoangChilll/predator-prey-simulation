@@ -3,15 +3,12 @@ from collections import deque
 from ui.constants import DIRECTIONS, is_valid
  
  # thuật toán tìm không gian sống của grey
- #start là vị trí xuất phát, blocked là vị trí của prey, grey không được đi vào 
+ #start là vị trí xuất phát của grey , blocked là vị trí của prey, grey không được đi vào 
 def flood_fill(grid, start, blocked=None):
-
     if blocked is None:
         blocked = set()
- 
     visited = {start}
     queue = deque([start])
- 
     while queue:
         x, y = queue.popleft()
         for dx, dy in DIRECTIONS:
@@ -19,32 +16,22 @@ def flood_fill(grid, start, blocked=None):
             if nxt not in visited and nxt not in blocked and is_valid(nxt, grid):
                 visited.add(nxt)
                 queue.append(nxt)
- 
     return visited  # tất cả các ô có thể đi được từ start hay không gian sống
  
- 
-
 # thuật toán tìm Articulation Points (điểm thắt cổ chai) hay điểm mà prey đến được đó thì grey sẽ bị nhốt
-# Dùng thuật toán Tarjan (DFS iterative để tránh RecursionError).
+# Tham khao thuật toán Tarjan (DFS iterative để tránh RecursionError).
 def find_articulation_points(grid, start, blocked=None):
-   
-
-
     if blocked is None:
         blocked = set()
- 
     # Chỉ xét các ô Grey có thể đến được
     reachable = flood_fill(grid, start, blocked)
     if not reachable:
         return set()
- 
-    # Tarjan iterative
     visited = {}   # thứ tự DFS vào ô
     low     = {}   # ô thấp nhất có thể lên được qua back-edge
     parent  = {}
     ap      = set()
     timer   = [0]
- 
     def dfs_iterative(root):
         stack = [(root, iter([
             (root[0]+dx, root[1]+dy)
@@ -54,7 +41,6 @@ def find_articulation_points(grid, start, blocked=None):
         visited[root] = low[root] = timer[0]
         timer[0] += 1
         parent[root] = None
- 
         while stack:
             u, neighbors, child_count = stack[-1]
             try:
@@ -99,7 +85,7 @@ def manhattan(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
  
  
-def astar_next_step(grid, start, goal, blocked=None):
+def next_step(grid, start, goal, blocked=None):
 
     if blocked is None:
         blocked = set()
@@ -156,7 +142,7 @@ def _bfs_dist(grid, start, goal):
     return float('inf')
 
 #
-def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
+def optimize_move(grid, pred_pos, grey_pos, valid_moves):
 
     # Chiến lược 1: AP tìm đến điểm thắt cổ chai
     art_points = find_articulation_points(grid, grey_pos, blocked={pred_pos})
@@ -167,12 +153,12 @@ def _get_optimize_move(grid, pred_pos, grey_pos, valid_moves):
 
     if valuable_aps:
         best_ap = min(valuable_aps, key=lambda ap: _bfs_dist(grid, grey_pos, ap))
-        next_step = astar_next_step(grid, pred_pos, best_ap)
-        if next_step != pred_pos:
+        ap_move = next_step(grid, pred_pos, best_ap)
+        if ap_move != pred_pos:
             # Chỉ dùng AP nếu bước đó không làm predator xa grey hơn
-            if _bfs_dist(grid, next_step, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
-                print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={next_step}")
-                return next_step
+            if _bfs_dist(grid, ap_move, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
+                print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={ap_move}")
+                return ap_move
 
     # Chiến lược 2: Shrink tìm đến điểm làm giảm không gian sống của grey
     current_grey_area = len(flood_fill(grid, grey_pos, blocked={pred_pos}))
@@ -216,12 +202,12 @@ def predator_move(grid, self_pos, opponent_pos):
         return grey_pos
 
     #  Tối ưu được vùng sống  dùng chiến lược AP / Shrink
-    optimize_move = _get_optimize_move(grid, pred_pos, grey_pos, valid_moves)
-    if optimize_move is not None:
-        return optimize_move
+    optimize_move1 = optimize_move(grid, pred_pos, grey_pos, valid_moves)
+    if optimize_move1 is not None:
+        return optimize_move1
 
     # Không tối ưu được dùng A* mặc định (đường chim bay)
-    astar_move = astar_next_step(grid, pred_pos, grey_pos)
+    astar_move = next_step(grid, pred_pos, grey_pos)
     if astar_move != pred_pos:
         print(f"[Predator] FALLBACK A* | pos={pred_pos} -> move={astar_move}")
         return astar_move

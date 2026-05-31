@@ -150,8 +150,8 @@ def create_ui():
         x = start_x + i * (btn_width + btn_spacing)
         buttons.append(Button(x, btn_y, btn_width, btn_height, text))
     dropdowns = {
-        "prey": Dropdown(["random", "p_dfs","p_greedy", "p_A*", "huy_minimax_prey"], buttons[0].rect.x, buttons[0].rect.y + btn_height + 5),
-        "grey": Dropdown([ "g_dfs","random","g_greedy", "huy_minimax_grey", "grey_A*"], buttons[1].rect.x, buttons[1].rect.y + btn_height + 5),
+        "prey": Dropdown(["random","K_mini_prey", "p_dfs","p_greedy", "p_A*", "huy_minimax_prey"], buttons[0].rect.x, buttons[0].rect.y + btn_height + 5),
+        "grey": Dropdown([ "g_dfs","K_mini_grey","g_greedy", "huy_minimax_grey", "grey_A*"], buttons[1].rect.x, buttons[1].rect.y + btn_height + 5),
         "grid": Dropdown(["10_1", "20_2", "20_1","20", "40", "40_2"], buttons[2].rect.x, buttons[2].rect.y + btn_height + 5),
     }
     log("UI CREATED (buttons + dropdowns)")
