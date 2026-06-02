@@ -69,6 +69,7 @@ while running:
                     log("START SIM")
 
                     state = STATE_SIM
+                    step_delay = 1000 + (config.get("prey_steps", 2) - 1) * 300
 
                     #  RESET SIM
                     sim = {
@@ -120,7 +121,7 @@ while running:
                     sim["turn"] = "prey"
 
             else:
-                for _ in range(2):
+                for _ in range(config.get("prey_steps", 2)):
                     sim["prey"] = selectAlgorithm(config["prey_algo"])(grid, sim["prey"], sim["grey"])
                     print("PREY:", sim["prey"])
                     # Chỉ break giữa chừng khi đứng TRÙNG ô (range=0)
@@ -129,7 +130,7 @@ while running:
                         sim["running"] = False
                         print("GAME OVER - Prey caught grey!")
                         break
-                # Sau khi đi đủ 2 bước, mới check liền kề (range=1)
+                # Sau khi đi đủ tất cả bước, mới check liền kề (range=1)
                 if sim["running"] and caught(sim["grey"], sim["prey"]):
                     sim["running"] = False
                     print("GAME OVER - Prey caught grey!")

@@ -30,7 +30,8 @@ def get_config():
     cfg = {
         "grid": "10_1",
         "prey_algo": "random",
-        "grey_algo": "greedy"
+        "grey_algo": "greedy",
+        "prey_steps": 2
     }
     log(f"INIT CONFIG: {cfg}")
     return cfg
@@ -106,15 +107,20 @@ def handle_config_click(pos, buttons, dropdowns, config):
             if btn.text == "PREY":
                 toggle_dropdown(dropdowns, "prey")
 
-            
+
             elif btn.text == "GREY":
                 toggle_dropdown(dropdowns, "grey")
 
-            
+
             elif btn.text == "GRID":
                 toggle_dropdown(dropdowns, "grid")
 
-           
+            elif btn.text.startswith("Steps:"):
+                config["prey_steps"] = (config["prey_steps"] % 3) + 1
+                btn.text = f"Steps:{config['prey_steps']}"
+                log(f"PREY STEPS SET TO: {config['prey_steps']}")
+
+
             elif btn.text == "START":
 
                 config["matrix"] = selectMatrix(config["grid"])
@@ -141,11 +147,11 @@ def create_ui():
     btn_width = 120
     btn_height = 40
     btn_spacing = 20
-    total_btn_width = 4 * btn_width + 3 * btn_spacing
+    total_btn_width = 5 * btn_width + 4 * btn_spacing
     start_x = (WIDTH - total_btn_width) // 2
     btn_y = int(HEIGHT * 0.25)
     buttons = []
-    btn_texts = ["PREY", "GREY", "GRID", "START"]
+    btn_texts = ["PREY", "GREY", "GRID", "Steps:2", "START"]
     for i, text in enumerate(btn_texts):
         x = start_x + i * (btn_width + btn_spacing)
         buttons.append(Button(x, btn_y, btn_width, btn_height, text))

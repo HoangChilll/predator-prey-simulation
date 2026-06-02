@@ -207,9 +207,9 @@ def predator_move(grid, self_pos, opponent_pos):
         return optimize_move1
 
     # Không tối ưu được dùng A* mặc định (đường chim bay)
-    astar_move = next_step(grid, pred_pos, grey_pos)
-    if astar_move != pred_pos:
-        print(f"[Predator] FALLBACK A* | pos={pred_pos} -> move={astar_move}")
-        return astar_move
+    astar_move1 = next_step(grid, pred_pos, grey_pos)
+    if astar_move1 != pred_pos:
+        print(f"[Predator] FALLBACK A* | pos={pred_pos} -> move={astar_move1}")
+        return astar_move1
 
     return valid_moves[0]
