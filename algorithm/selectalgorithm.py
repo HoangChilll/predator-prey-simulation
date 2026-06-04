@@ -15,11 +15,11 @@ ALGORITHMS = {
     "p_dfs": predator_dfs_move,
     "g_dfs": prey_dfs_move,
     "p_A*": predator_move,
-    "huy_minimax_prey": prey_minimax_shortest_path,
-    "huy_minimax_grey": grey_minimax_shortest_path,
+    "huy_mi_prey": prey_minimax_shortest_path,
+    "huy_mi_grey": grey_minimax_shortest_path,
     "grey_A*": grey_move,
-    "K_mini_prey": prey_minimax_shortest_path,
-    "K_mini_grey": grey_minimax_shortest_path
+    "K_mi_prey": prey_minimax_shortest_path,
+    "K_mi_grey": grey_minimax_shortest_path
 }
 def selectAlgorithm(name):
     if name not in ALGORITHMS:

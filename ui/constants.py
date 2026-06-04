@@ -3,7 +3,7 @@ HEIGHT = 600
 GRID_AREA = int(WIDTH * 0.75)
 FPS = 60
 def log(msg):
-    print(f"[DEBUG] {msg}")
+    pass
     
 def get_cell(size):
     return GRID_AREA // size
@@ -18,5 +18,5 @@ def is_valid(pos, grid):# kiểm tra ô hợp lệ
     return (
         0 <= x < rows and
         0 <= y < cols and
-        grid[x][y] != 1
+        grid[x][y] == 0  # 0=free, 1=wall, 2=dynamic obstacle
     )

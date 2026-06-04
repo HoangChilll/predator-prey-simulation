@@ -157,7 +157,6 @@ def optimize_move(grid, pred_pos, grey_pos, valid_moves):
         if ap_move != pred_pos:
             # Chỉ dùng AP nếu bước đó không làm predator xa grey hơn
             if _bfs_dist(grid, ap_move, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
-                print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={ap_move}")
                 return ap_move
 
     # Chiến lược 2: Shrink tìm đến điểm làm giảm không gian sống của grey
@@ -176,9 +175,7 @@ def optimize_move(grid, pred_pos, grey_pos, valid_moves):
         # Chỉ dùng Shrink nếu bước đó không làm predator xa grey hơn
         # (nhất quán với điều kiện guard của chiến lược AP)
         if _bfs_dist(grid, best_move, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
-            print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
             return best_move
-        print(f"[Predator] SHRINK SKIP (would move away from grey) | pos={pred_pos} -> skip={best_move} | reduction={best_reduction}")
 
     return None  # Không thể tối ưu → fallback A*
 
@@ -198,7 +195,6 @@ def predator_move(grid, self_pos, opponent_pos):
 
     #  Grey kề cạnh → bắt ngay
     if grey_pos in valid_moves:
-        print(f"[Predator] CATCH | pos={pred_pos} -> grey={grey_pos}")
         return grey_pos
 
     #  Tối ưu được vùng sống  dùng chiến lược AP / Shrink
@@ -209,7 +205,6 @@ def predator_move(grid, self_pos, opponent_pos):
     # Không tối ưu được dùng A* mặc định (đường chim bay)
     astar_move1 = next_step(grid, pred_pos, grey_pos)
     if astar_move1 != pred_pos:
-        print(f"[Predator] FALLBACK A* | pos={pred_pos} -> move={astar_move1}")
         return astar_move1
 
     return valid_moves[0]

@@ -1,15 +1,13 @@
 import pygame
-from ui.constants import WIDTH
+from ui.constants import WIDTH, GRID_AREA
+
+
 class Button:
     def __init__(self, x, y, w, h, text):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
-        # Colors (normal, hover, pressed)
-        self.color_normal = (30, 100, 200)      # calm blue
-        self.color_hover  = (60, 150, 240)      # brighter blue
-        self.color_pressed = (20, 70, 160)      # darker blue when clicked
+        self.border_radius = 10
         self.shadow_offset = (3, 3)
-        self.border_radius = 12
         self.hover = False
         self.clicked = False
 
@@ -18,78 +16,76 @@ class Button:
         self.clicked = self.hover and mouse_down
 
     def draw(self, screen, font):
-
-        # ===== COLOR STATE =====
         if self.clicked:
-            color = (0, 80, 180)      # click
+            color  = (18, 68, 168)
+            border = (100, 150, 255)
         elif self.hover:
-            pygame.draw.rect(screen, (255, 255, 255, 80), self.rect, width=2, border_radius=self.border_radius)     # normal
+            color  = (50, 130, 240)
+            border = (140, 190, 255)
         else:
-            color = (0, 120, 220)     # normal
+            color  = (28, 98, 210)
+            border = (75, 130, 200)
 
-        # ===== SHADOW =====
-        shadow_rect = self.rect.move(self.shadow_offset)
-        pygame.draw.rect(screen, (30, 30, 40), shadow_rect, border_radius=self.border_radius)
-
-        # ===== BUTTON =====
+        # Shadow
+        pygame.draw.rect(screen, (0, 0, 0),
+                         self.rect.move(self.shadow_offset),
+                         border_radius=self.border_radius)
+        # Body
         pygame.draw.rect(screen, color, self.rect, border_radius=self.border_radius)
-
-        # ===== TEXT =====
+        # Top sheen
+        sheen = pygame.Surface((self.rect.width - 8, self.rect.height // 2 - 2),
+                               pygame.SRCALPHA)
+        sheen.fill((255, 255, 255, 20))
+        screen.blit(sheen, (self.rect.x + 4, self.rect.y + 3))
+        # Border
+        pygame.draw.rect(screen, border, self.rect,
+                         width=2, border_radius=self.border_radius)
+        # Text
         txt = font.render(self.text, True, (255, 255, 255))
-        screen.blit(
-            txt,
-            (self.rect.centerx - txt.get_width() // 2,
-             self.rect.centery - txt.get_height() // 2)
-        )
+        screen.blit(txt, txt.get_rect(center=self.rect.center))
 
     def click(self, pos):
         return self.rect.collidepoint(pos)
+
+
 class SimpleButton:
     def __init__(self, x, y, w, h, text):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
-        # Colors (normal, hover, pressed)
-        self.color_normal = (30, 100, 200)      # calm blue
-        self.color_hover  = (60, 150, 240)      # brighter blue
-        self.color_pressed = (20, 70, 160)      # darker blue when clicked
-        self.shadow_offset = (3, 3)
-        self.border_radius = 12
+        self.border_radius = 10
 
     def draw(self, screen, font):
-        # Get current mouse state for visual feedback
         mouse_pos = pygame.mouse.get_pos()
-        mouse_pressed = pygame.mouse.get_pressed()[0]  # left button
         hover = self.rect.collidepoint(mouse_pos)
+        pressed = hover and pygame.mouse.get_pressed()[0]
 
-        # Choose color based on state
-        if hover and mouse_pressed:
-            color = self.color_pressed
+        if pressed:
+            color  = (18, 68, 168)
+            border = (100, 150, 255)
         elif hover:
-            color = self.color_hover
+            color  = (50, 130, 240)
+            border = (140, 190, 255)
         else:
-            color = self.color_normal
+            color  = (28, 98, 210)
+            border = (75, 130, 200)
 
-        # Draw shadow
-        shadow_rect = self.rect.move(self.shadow_offset)
-        pygame.draw.rect(screen, (30, 30, 40), shadow_rect, border_radius=self.border_radius)
-
-        # Draw main button
+        pygame.draw.rect(screen, (0, 0, 0),
+                         self.rect.move(3, 3), border_radius=self.border_radius)
         pygame.draw.rect(screen, color, self.rect, border_radius=self.border_radius)
-
-        # Optional: subtle border when hovered
-        if hover:
-            pygame.draw.rect(screen, (255, 255, 255, 80), self.rect, width=2, border_radius=self.border_radius)
-
-        # Draw text with slight drop shadow
-        text_surf = font.render(self.text, True, (255, 255, 255))
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        # Text shadow (very subtle)
-        shadow_text_rect = text_rect.move(1, 1)
-        shadow_surf = font.render(self.text, True, (0, 0, 0, 100))
-        screen.blit(shadow_surf, shadow_text_rect)
-        screen.blit(text_surf, text_rect)
+        sheen = pygame.Surface((self.rect.width - 8, self.rect.height // 2 - 2),
+                               pygame.SRCALPHA)
+        sheen.fill((255, 255, 255, 20))
+        screen.blit(sheen, (self.rect.x + 4, self.rect.y + 3))
+        pygame.draw.rect(screen, border, self.rect,
+                         width=2, border_radius=self.border_radius)
+        ts = font.render(self.text, True, (255, 255, 255))
+        screen.blit(ts, ts.get_rect(center=self.rect.center))
 
     def click(self, pos):
         return self.rect.collidepoint(pos)
-pause_btn = SimpleButton(WIDTH - 180, 200, 140, 50, "PAUSE")
-end_btn   = SimpleButton(WIDTH - 180, 300, 140, 50, "END")
+
+
+# Positioned inside the right-side HUD panel (x=GRID_AREA..WIDTH)
+_bx = GRID_AREA + 25   # 625
+pause_btn = SimpleButton(_bx, 388, 150, 44, "PAUSE")
+end_btn   = SimpleButton(_bx, 446, 150, 44, "END")

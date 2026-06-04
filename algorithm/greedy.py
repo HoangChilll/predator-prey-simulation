@@ -56,7 +56,7 @@ def predatorgreedy(grid, self_pos, opponent_pos):
             neighbor = (current[0] + dx, current[1] + dy)
 
 
-            if is_valid(grid, neighbor) and neighbor not in parent:
+            if is_valid(neighbor, grid) and neighbor not in parent:
                 parent[neighbor] = current
 
 
@@ -123,7 +123,7 @@ def preygreedy(grid, self_pos, opponent_pos):
     for dx, dy in DIRECTIONS:
         candidate = (start[0] + dx, start[1] + dy)
 
-        if is_valid(grid, candidate):
+        if is_valid(candidate, grid):
             dist = heuristic(candidate, predator)
 
 

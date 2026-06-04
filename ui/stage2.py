@@ -2,8 +2,23 @@ import pygame
 from ui.button import Button
 
 from ui.constants import WIDTH, HEIGHT, log
+
+_FONTS = {}
+def _f(size):
+    if size not in _FONTS:
+        _FONTS[size] = pygame.font.SysFont("Arial", size)
+    return _FONTS[size]
 from ui.grid import grid10x10,grid20x20_2 ,MAZE_20,grid20x20, grid40x40,grid40x40_2
 from ui.dropdown import Dropdown, toggle_dropdown, update_dropdown
+from algorithm.random_maze import generate_random_maze
+
+# Trạng thái kích thước mê cung ngẫu nhiên (điều chỉnh qua nút +/-)
+_rand_size = {"value": 20}
+_BTN_SZ = 36
+_RAND_CTR_Y = int(HEIGHT * 0.50)
+_RAND_MINUS_RECT = pygame.Rect(WIDTH // 2 - 80, _RAND_CTR_Y, _BTN_SZ, _BTN_SZ)
+_RAND_VAL_RECT   = pygame.Rect(WIDTH // 2 - 30, _RAND_CTR_Y, 60, _BTN_SZ)
+_RAND_PLUS_RECT  = pygame.Rect(WIDTH // 2 + 34, _RAND_CTR_Y, _BTN_SZ, _BTN_SZ)
 
 
 MATRICES = {
@@ -31,7 +46,8 @@ def get_config():
         "grid": "10_1",
         "prey_algo": "random",
         "grey_algo": "greedy",
-        "prey_steps": 2
+        "prey_steps": 2,
+        "dynamic_obstacle": False
     }
     log(f"INIT CONFIG: {cfg}")
     return cfg
@@ -40,49 +56,96 @@ def get_config():
 
 # UI RENDER
 
-def draw_config(screen, font, buttons, dropdowns):
+def _draw_rand_controls(screen, font):
+    lbl = _f(18).render("Kích thước mê cung  (11 – 40)", True, (145, 175, 225))
+    screen.blit(lbl, lbl.get_rect(center=(WIDTH // 2, _RAND_CTR_Y - 24)))
+
+    mouse_pos = pygame.mouse.get_pos()
+    for rect, sym in [(_RAND_MINUS_RECT, "-"), (_RAND_PLUS_RECT, "+")]:
+        hover = rect.collidepoint(mouse_pos)
+        pygame.draw.rect(screen, (0, 0, 0), rect.move(3, 3), border_radius=9)
+        pygame.draw.rect(screen, (55, 88, 195) if hover else (35, 62, 165), rect, border_radius=9)
+        sheen = pygame.Surface((rect.width - 6, rect.height // 2 - 2), pygame.SRCALPHA)
+        sheen.fill((255, 255, 255, 18))
+        screen.blit(sheen, (rect.x + 3, rect.y + 3))
+        pygame.draw.rect(screen, (120, 160, 255) if hover else (75, 110, 220),
+                         rect, width=2, border_radius=9)
+        t = font.render(sym, True, (255, 255, 255))
+        screen.blit(t, t.get_rect(center=rect.center))
+
+    # Value display
+    pygame.draw.rect(screen, (0, 0, 0), _RAND_VAL_RECT.move(3, 3), border_radius=7)
+    pygame.draw.rect(screen, (28, 32, 58), _RAND_VAL_RECT, border_radius=7)
+    pygame.draw.rect(screen, (100, 130, 210), _RAND_VAL_RECT, width=2, border_radius=7)
+    vs = font.render(str(_rand_size["value"]), True, (220, 225, 255))
+    screen.blit(vs, vs.get_rect(center=_RAND_VAL_RECT.center))
+
+
+def draw_config(screen, font, buttons, dropdowns, config=None):
     for y in range(HEIGHT):
-        # màu 
         ratio = y / HEIGHT
-        r = int(255 * (1 - ratio) + 245 * ratio)      # 255 -> 245
-        g = int(180 * (1 - ratio) + 210 * ratio)      # 180 -> 210
-        b = int(50  * (1 - ratio) + 100 * ratio)      # 50  -> 100
+        r = int(10 + ratio * 8)
+        g = int(10 + ratio * 6)
+        b = int(32 + ratio * 22)
         pygame.draw.line(screen, (r, g, b), (0, y), (WIDTH, y))
+    gs = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    for x in range(0, WIDTH + 1, 55):
+        pygame.draw.line(gs, (65, 88, 155, 13), (x, 0), (x, HEIGHT))
+    for y in range(0, HEIGHT + 1, 55):
+        pygame.draw.line(gs, (65, 88, 155, 13), (0, y), (WIDTH, y))
+    screen.blit(gs, (0, 0))
 
-    # 2. vẽ panel 
-    panel_margin = 40
-    panel_rect = pygame.Rect(panel_margin, panel_margin,
-                             WIDTH - 2*panel_margin, HEIGHT - 2*panel_margin)
-    panel_surface = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
-    pygame.draw.rect(panel_surface, (30, 30, 40, 180), panel_surface.get_rect(), border_radius=20)
-    pygame.draw.rect(panel_surface, (200, 180, 100, 255), panel_surface.get_rect(), width=2, border_radius=20)
-    screen.blit(panel_surface, (panel_margin, panel_margin))
-
-    # 3. vẽ tiêu đề đổ bóng
-    title_text = "CONFIGURATION"
-    # đổ bóng
-    shadow_surf = font.render(title_text, True, (0, 0, 0, 100))
-    shadow_rect = shadow_surf.get_rect(center=(WIDTH//2 + 4, int(HEIGHT*0.1) + 4))
-    screen.blit(shadow_surf, shadow_rect)
-    
+    # vẽ panel
+    pm = 38
+    pr = pygame.Rect(pm, pm, WIDTH - 2*pm, HEIGHT - 2*pm)
+    ps = pygame.Surface((pr.width, pr.height), pygame.SRCALPHA)
+    pygame.draw.rect(ps, (16, 20, 40, 210), ps.get_rect(), border_radius=18)
+    pygame.draw.rect(ps, (75, 108, 200, 240), ps.get_rect(), width=2, border_radius=18)
+    screen.blit(ps, (pm, pm))
 
     # vẽ tiêu đề
-    title = font.render(title_text, True, (255, 255, 255))
-    title_rect = title.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.1)))
-    screen.blit(title, title_rect)
+    title_cy = int(HEIGHT * 0.10)
+    sh = font.render("CONFIGURATION", True, (0, 0, 0))
+    screen.blit(sh, sh.get_rect(center=(WIDTH // 2 + 3, title_cy + 3)))
+    title_s = font.render("CONFIGURATION", True, (255, 210, 55))
+    screen.blit(title_s, title_s.get_rect(center=(WIDTH // 2, title_cy)))
 
-    line_y = title_rect.bottom + 10
-    line_width = 150
-    pygame.draw.line(screen, (255, 220, 150), (WIDTH//2 - line_width//2, line_y),
-                     (WIDTH//2 + line_width//2, line_y), 3)
+    # vẽ đường kẻ dưới tiêu đề
+    lw, ly, mx = 180, title_cy + title_s.get_height() // 2 + 14, WIDTH // 2
+    pygame.draw.line(screen, (70, 108, 198), (mx - lw//2, ly), (mx - 10, ly - 7), 2)
+    pygame.draw.line(screen, (255, 210, 55), (mx - 10, ly - 7), (mx + 10, ly - 7), 2)
+    pygame.draw.line(screen, (70, 108, 198), (mx + 10, ly - 7), (mx + lw//2, ly), 2)
 
     # vẽ nút
+    row1_meta = [
+        ("PREY ALGORITHM",  "prey"),
+        ("PRED ALGORITHM",  "grey"),
+        ("MAP LAYOUT",      "grid"),
+        ("PREY SPEED",      None),
+    ]
+    for i, (lbl_text, dd_key) in enumerate(row1_meta):
+        if i >= len(buttons):
+            break
+        btn = buttons[i]
+        lbl_s = _f(16).render(lbl_text, True, (115, 148, 212))
+        screen.blit(lbl_s, lbl_s.get_rect(center=(btn.rect.centerx, btn.rect.y - 14)))
+        if dd_key and dd_key in dropdowns:
+            sel_text = dropdowns[dd_key].selected
+            sel_s = _f(15).render(sel_text, True, (170, 195, 245))
+            screen.blit(sel_s, sel_s.get_rect(center=(btn.rect.centerx, btn.rect.bottom + 13)))
+    if len(buttons) > 4:
+        lbl_s = _f(16).render("OBSTACLES", True, (115, 148, 212))
+        screen.blit(lbl_s, lbl_s.get_rect(center=(buttons[4].rect.centerx, buttons[4].rect.y - 14)))
+
+    # vẽ bút
     for btn in buttons:
         btn.draw(screen, font)
-
-    # vẽ list
     for dd in dropdowns.values():
         dd.draw(screen, font)
+
+    # vẽ +- size
+    if config and config.get("grid") == "random":
+        _draw_rand_controls(screen, font)
 
     pygame.display.flip()
 
@@ -90,8 +153,15 @@ def draw_config(screen, font, buttons, dropdowns):
 
 #hàm xử lý input
 def handle_config_click(pos, buttons, dropdowns, config):
+    # Xử lý nút +/- kích thước random
+    if config.get("grid") == "random":
+        if _RAND_MINUS_RECT.collidepoint(pos):
+            _rand_size["value"] = max(11, _rand_size["value"] - 1)
+            return None
+        if _RAND_PLUS_RECT.collidepoint(pos):
+            _rand_size["value"] = min(40, _rand_size["value"] + 1)
+            return None
 
-   
     for btn in buttons:
 
         mouse_pos = pygame.mouse.get_pos()
@@ -120,10 +190,17 @@ def handle_config_click(pos, buttons, dropdowns, config):
                 btn.text = f"Steps:{config['prey_steps']}"
                 log(f"PREY STEPS SET TO: {config['prey_steps']}")
 
+            elif "Dynamic" in btn.text:
+                config["dynamic_obstacle"] = not config.get("dynamic_obstacle", False)
+                btn.text = "[X] Dynamic" if config["dynamic_obstacle"] else "[ ] Dynamic"
+                log(f"DYNAMIC OBSTACLE: {config['dynamic_obstacle']}")
+
 
             elif btn.text == "START":
-
-                config["matrix"] = selectMatrix(config["grid"])
+                if config["grid"] == "random":
+                    config["matrix"] = generate_random_maze(_rand_size["value"])
+                else:
+                    config["matrix"] = selectMatrix(config["grid"])
 
                 log(f"START GAME WITH CONFIG: {config}")
 
@@ -147,18 +224,45 @@ def create_ui():
     btn_width = 120
     btn_height = 40
     btn_spacing = 20
-    total_btn_width = 5 * btn_width + 4 * btn_spacing
-    start_x = (WIDTH - total_btn_width) // 2
-    btn_y = int(HEIGHT * 0.25)
+
+    # Hàng 1: 4 nút tùy chọn (PREY, GREY, GRID, Steps)
+    n_row1 = 4
+    total_row1_w = n_row1 * btn_width + (n_row1 - 1) * btn_spacing
+    row1_x = (WIDTH - total_row1_w) // 2
+    row1_y = int(HEIGHT * 0.23)
+
     buttons = []
-    btn_texts = ["PREY", "GREY", "GRID", "Steps:2", "START"]
-    for i, text in enumerate(btn_texts):
-        x = start_x + i * (btn_width + btn_spacing)
-        buttons.append(Button(x, btn_y, btn_width, btn_height, text))
+    for i, text in enumerate(["PREY", "GREY", "GRID", "Steps:2"]):
+        x = row1_x + i * (btn_width + btn_spacing)
+        buttons.append(Button(x, row1_y, btn_width, btn_height, text))
+
+    # Hàng 2: nút Dynamic (index 4) và START (index 5) đặt cạnh nhau, căn giữa
+    row2_y = int(HEIGHT * 0.72)
+    dyn_w = 160
+    gap = 20
+    row2_total = dyn_w + gap + btn_width
+    row2_x = (WIDTH - row2_total) // 2
+
+    buttons.append(Button(row2_x, row2_y, dyn_w, btn_height, "[ ] Dynamic"))          # index 4
+    buttons.append(Button(row2_x + dyn_w + gap, row2_y, btn_width, btn_height, "START"))  # index 5
+
     dropdowns = {
-        "prey": Dropdown(["random","K_mini_prey", "p_dfs","p_greedy", "p_A*", "huy_minimax_prey"], buttons[0].rect.x, buttons[0].rect.y + btn_height + 5),
-        "grey": Dropdown([ "g_dfs","K_mini_grey","g_greedy", "huy_minimax_grey", "grey_A*"], buttons[1].rect.x, buttons[1].rect.y + btn_height + 5),
-        "grid": Dropdown(["10_1", "20_2", "20_1","20", "40", "40_2"], buttons[2].rect.x, buttons[2].rect.y + btn_height + 5),
+        "prey": Dropdown(
+            ["random", "K_mi_prey", "p_dfs", "p_greedy", "p_A*", "huy_mi_prey"],
+            buttons[0].rect.x, buttons[0].rect.y + btn_height + 5
+        ),
+        "grey": Dropdown(
+            ["g_dfs", "K_mi_grey", "g_greedy", "huy_mi_grey", "grey_A*"],
+            buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
+        ),
+        "grid": Dropdown(
+            ["10_1", "20_2", "20_1", "20", "40", "40_2", "random"],
+            buttons[2].rect.x, buttons[2].rect.y + btn_height + 5
+        ),
     }
     log("UI CREATED (buttons + dropdowns)")
-    return buttons, dropdowns 
+    return buttons, dropdowns
+
+
+def handle_config_key(event):
+    pass

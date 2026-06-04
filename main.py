@@ -1,10 +1,11 @@
 import pygame
-from ui.map import  draw_grid, draw_agents, font, title_font, btn_rect, buttons, dropdowns
+from ui.map import  draw_grid, draw_agents, draw_sim_ui, draw_game_over, font, title_font, btn_rect, buttons, dropdowns
 from ui.stage1 import draw_menu
 from ui.constants import WIDTH, HEIGHT,log
-from ui.stage2 import get_config, draw_config, handle_config_click, selectMatrix
+from ui.stage2 import get_config, draw_config, handle_config_click, handle_config_key, selectMatrix
 from ui.button import pause_btn, end_btn
 from algorithm.selectalgorithm import selectAlgorithm
+from algorithm.dynamic_obstacles import DynamicObstacleManager
 # STAGE
 
 
@@ -25,11 +26,12 @@ clock = pygame.time.Clock()
 
 
 
-# Các tham số ban đầu 
+# Các tham số ban đầu
 sim = None  #trạng thái
-grid = None 
+grid = None
+dyn_manager = None  # DynamicObstacleManager, None khi tắt chế độ dynamic
 
-step_delay = 1000   
+step_delay = 1000
 last_step = pygame.time.get_ticks()
 
 # HANDLER
@@ -57,6 +59,8 @@ while running:
 
         
         elif state == STATE_CONFIG:
+            if event.type == pygame.KEYDOWN:
+                handle_config_key(event)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 result = handle_config_click(
                     event.pos,
@@ -78,15 +82,20 @@ while running:
                         "time": 0,
                         "running": True,
                         "turn": "grey",
-                        "grey_last_dir": None  # track last direction for momentum
+                        "grey_last_dir": None
                     }
 
-                    grid = selectMatrix(config["grid"])
+                    grid = config["matrix"]
+
+                    # Khởi tạo dynamic obstacle layer (seed=42 đảm bảo reproducible)
+                    if config.get("dynamic_obstacle"):
+                        dyn_manager = DynamicObstacleManager(grid, seed=42, update_interval=3)
+                        log("DYNAMIC OBSTACLE ENABLED (seed=42, interval=3)")
+                    else:
+                        dyn_manager = None
         elif state == STATE_SIM:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                print("CLICK AT:", event.pos) 
                 if pause_btn.click(event.pos):
-                  print("PAUSE CLICKED")
                   sim["running"] = not sim["running"]
                   log("PAUSE TOGGLE")
                   last_step = pygame.time.get_ticks()
@@ -101,39 +110,40 @@ while running:
             def caught(grey, prey, catch_range=1):
                 return abs(grey[0] - prey[0]) + abs(grey[1] - prey[1]) <= catch_range
 
+            # Cập nhật vật cản động (chỉ khi đến interval, sau bước 0)
+            if dyn_manager:
+                dyn_manager.update(sim["time"], sim["grey"], sim["prey"])
+
+            # Grid hiệu dụng: chứa cả vật cản động (value=2) nếu bật
+            current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
+
             if sim["turn"] == "grey":
                 algo = selectAlgorithm(config["grey_algo"])
                 old_grey = sim["grey"]
                 # truyền last_dir nếu algo là grey_A* (nhận 4 tham số)
                 try:
-                    sim["grey"] = algo(grid, old_grey, sim["prey"], sim["grey_last_dir"])
+                    sim["grey"] = algo(current_grid, old_grey, sim["prey"], sim["grey_last_dir"])
                 except TypeError:
-                    sim["grey"] = algo(grid, old_grey, sim["prey"])
+                    sim["grey"] = algo(current_grid, old_grey, sim["prey"])
                 # cập nhật last_dir
                 dr = sim["grey"][0] - old_grey[0]
                 dc = sim["grey"][1] - old_grey[1]
                 sim["grey_last_dir"] = (dr, dc) if (dr, dc) != (0, 0) else sim["grey_last_dir"]
-                print("GREY:", sim["grey"])
                 if caught(sim["grey"], sim["prey"]):
                     sim["running"] = False
-                    print("GAME OVER - Prey caught grey!")
                 else:
                     sim["turn"] = "prey"
 
             else:
                 for _ in range(config.get("prey_steps", 2)):
-                    sim["prey"] = selectAlgorithm(config["prey_algo"])(grid, sim["prey"], sim["grey"])
-                    print("PREY:", sim["prey"])
+                    sim["prey"] = selectAlgorithm(config["prey_algo"])(current_grid, sim["prey"], sim["grey"])
                     # Chỉ break giữa chừng khi đứng TRÙNG ô (range=0)
-                    # tránh break sớm khi chỉ liền kề grey sau bước 1
                     if caught(sim["grey"], sim["prey"], catch_range=0):
                         sim["running"] = False
-                        print("GAME OVER - Prey caught grey!")
                         break
                 # Sau khi đi đủ tất cả bước, mới check liền kề (range=1)
                 if sim["running"] and caught(sim["grey"], sim["prey"]):
                     sim["running"] = False
-                    print("GAME OVER - Prey caught grey!")
                 if sim["running"]:
                     sim["turn"] = "grey"
             sim["time"] += 1
@@ -146,31 +156,18 @@ while running:
         btn_rect = draw_menu(screen, font, title_font, btn_rect)
 
     elif state == STATE_CONFIG:
-        draw_config(screen, font, buttons, dropdowns)
+        draw_config(screen, font, buttons, dropdowns, config)
 
     elif state == STATE_SIM and sim:
-        draw_grid(screen, grid)
+        current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
+        draw_grid(screen, current_grid)
         draw_agents(screen, sim["grey"], sim["prey"], len(grid))
-
-        # TIME
-        txt = font.render(f"Time: {sim['time']}", True, (255,255,255))
-        screen.blit(txt, (WIDTH - 200, 50))
-
-        # TURN
-        txt2 = font.render(f"Turn: {sim['turn']}", True, (255,255,255))
-        screen.blit(txt2, (WIDTH - 200, 100))
-
+        draw_sim_ui(screen, font, sim)
         pause_btn.draw(screen, font)
         end_btn.draw(screen, font)
 
         if not sim["running"]:
-            overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 150))
-            screen.blit(overlay, (0, 0))
-            go_text = title_font.render("GAME OVER", True, (255, 80, 80))
-            screen.blit(go_text, go_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 30)))
-            sub_text = font.render("Predator caught prey!", True, (255, 255, 255))
-            screen.blit(sub_text, sub_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20)))
+            draw_game_over(screen, font, title_font)
 
     pygame.display.flip()
 
