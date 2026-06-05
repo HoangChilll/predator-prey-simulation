@@ -3,9 +3,6 @@ import heapq
 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]   # lên, xuống, trái, phải
 
-# Predator (prey trong game) di 2 buoc/luot, grey di 1 buoc/luot
-PRED_SPEED = 2
-
 # ----------------------------------------------------------------------
 # Tiện ích lưới
 # ----------------------------------------------------------------------
@@ -89,60 +86,52 @@ def a_star(grid, start, goal):
 
 # ----------------------------------------------------------------------
 # NÉ THÔNG MINH (logic chính)
-# FIX: tính đúng tốc độ predator (PRED_SPEED = 2 bước/lượt)
-#   - Vùng nguy hiểm = PRED_SPEED bước tiếp theo của predator + lân cận
-#   - Ngưỡng lọc: pd <= PRED_SPEED (predator đến được trong 1 lượt grey)
+#   - Vùng nguy hiểm = pred_speed bước tiếp theo của predator + lân cận
+#   - Ngưỡng lọc: pd <= pred_speed (predator đến được trong 1 lượt grey)
 #   - Voronoi: grey cần tới trước predator tính theo tốc độ thực
 # ----------------------------------------------------------------------
-W = dict(DIST=2.4, SPACE=1.5, EXIT=1.0, VOR=0.5, WALL=1.0, DANGER=9.0, MOMENTUM=2.5)
+W = dict(DIST=2.4, SPACE=1.5, EXIT=1.0, VOR=0.5, WALL=1.0, DANGER=9.0)
 
-def evade(grid, self_pos, opponent_pos, last_dir=None):
-    pred_field = bfs_dist(grid, opponent_pos)               # đường thật predator -> mọi ô
+def evade(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
+    pred_field = bfs_dist(grid, opponent_pos)
     big = len(grid) * len(grid[0])
 
-    # Dự đoán PRED_SPEED bước của predator (predator di 2 ô/lượt)
     pred_path = a_star(grid, opponent_pos, self_pos)
 
-    # Vùng nguy hiểm = tất cả ô predator đi qua trong PRED_SPEED bước + lân cận bước cuối
     danger = {opponent_pos}
-    for i in range(1, PRED_SPEED + 1):
+    for i in range(1, pred_speed + 1):
         node = pred_path[i] if len(pred_path) > i else (pred_path[-1] if pred_path else opponent_pos)
         danger.add(node)
-    pred_last = pred_path[PRED_SPEED] if len(pred_path) > PRED_SPEED else (
+    pred_last = pred_path[pred_speed] if len(pred_path) > pred_speed else (
                 pred_path[-1] if pred_path else opponent_pos)
     danger |= set(neighbors(grid, *pred_last))
 
-    candidates = neighbors(grid, *self_pos)                  # chỉ 4 hướng, KHÔNG đứng yên
+    candidates = neighbors(grid, *self_pos)
     best, best_score = None, float("-inf")
 
     for c in candidates:
         if c == opponent_pos:
             continue
         pd = pred_field.get(c, float("inf"))
-        # Predator đi PRED_SPEED bước/lượt → né ô predator có thể đến trong 1 lượt
-        if pd <= PRED_SPEED and len(candidates) > 1:
+        if pd <= pred_speed and len(candidates) > 1:
             continue
-        pd_eff = pd if pd != float("inf") else big          # predator không tới được = rất an toàn
+        pd_eff = pd if pd != float("inf") else big
 
-        space = flood_area(grid, c, danger, cap=120)        # không gian mở (anti ngõ cụt)
-        exits = len(neighbors(grid, *c))                    # số lối thoát
+        space = flood_area(grid, c, danger, cap=120)
+        exits = len(neighbors(grid, *c))
         my_field = bfs_dist(grid, c)
-        # Voronoi: grey đến trước predator tính theo tốc độ thực (predator nhanh 2x)
         owned = sum(1 for cell, d in my_field.items()
-                    if d * PRED_SPEED < pred_field.get(cell, float("inf")))
+                    if d * pred_speed < pred_field.get(cell, float("inf")))
         walls = sum(1 for dr, dc in DIRS if not is_free(grid, c[0] + dr, c[1] + dc))
-        step = (c[0] - self_pos[0], c[1] - self_pos[1])
-        mom = 1 if (last_dir and step == last_dir) else 0   # giữ đà -> lượn mượt
 
         score = (W["DIST"] * pd_eff + W["SPACE"] * space + W["EXIT"] * exits
-                 + W["VOR"] * owned - W["WALL"] * walls + W["MOMENTUM"] * mom)
+                 + W["VOR"] * owned - W["WALL"] * walls)
         if c in danger:
-            score -= W["DANGER"]                            # ô predator sắp tới: trừ nặng
+            score -= W["DANGER"]
 
         if score > best_score:
             best_score, best = score, c
 
-    # Nếu tất cả neighbors bị lọc (bí hoàn toàn) → đứng yên như last resort
     if best is None:
         best = self_pos
 
@@ -164,8 +153,8 @@ def astar_flee(grid, self_pos, opponent_pos):
 
 
 # thuật toán chính
-def grey_move(grid, self_pos, opponent_pos, last_dir=None):
-    nxt = evade(grid, self_pos, opponent_pos, last_dir)     # thuật toán chính
+def grey_move(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
+    nxt = evade(grid, self_pos, opponent_pos, last_dir, pred_speed)
     if nxt is None:
-        nxt = astar_flee(grid, self_pos, opponent_pos)      # fallback A*
+        nxt = astar_flee(grid, self_pos, opponent_pos)
     return nxt

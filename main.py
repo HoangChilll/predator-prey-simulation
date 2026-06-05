@@ -29,7 +29,7 @@ clock = pygame.time.Clock()
 # Các tham số ban đầu
 sim = None  #trạng thái
 grid = None
-dyn_manager = None  # DynamicObstacleManager, None khi tắt chế độ dynamic
+dyn_manager = None  # bạt vật cản động
 
 step_delay = 1000
 last_step = pygame.time.get_ticks()
@@ -87,7 +87,7 @@ while running:
 
                     grid = config["matrix"]
 
-                    # Khởi tạo dynamic obstacle layer (seed=42 đảm bảo reproducible)
+                    # tạo vật cản động
                     if config.get("dynamic_obstacle"):
                         dyn_manager = DynamicObstacleManager(grid, seed=42, update_interval=3)
                         log("DYNAMIC OBSTACLE ENABLED (seed=42, interval=3)")
@@ -110,21 +110,24 @@ while running:
             def caught(grey, prey, catch_range=1):
                 return abs(grey[0] - prey[0]) + abs(grey[1] - prey[1]) <= catch_range
 
-            # Cập nhật vật cản động (chỉ khi đến interval, sau bước 0)
+            # Cập nhật vật cản động 
             if dyn_manager:
                 dyn_manager.update(sim["time"], sim["grey"], sim["prey"])
 
-            # Grid hiệu dụng: chứa cả vật cản động (value=2) nếu bật
+            # Grid động: chứa cả vật cản động (value=2) nếu bật
             current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
 
             if sim["turn"] == "grey":
                 algo = selectAlgorithm(config["grey_algo"])
                 old_grey = sim["grey"]
-                # truyền last_dir nếu algo là grey_A* (nhận 4 tham số)
                 try:
-                    sim["grey"] = algo(current_grid, old_grey, sim["prey"], sim["grey_last_dir"])
+                    sim["grey"] = algo(current_grid, old_grey, sim["prey"], sim["grey_last_dir"],
+                                       config.get("prey_steps", 2))
                 except TypeError:
-                    sim["grey"] = algo(current_grid, old_grey, sim["prey"])
+                    try:
+                        sim["grey"] = algo(current_grid, old_grey, sim["prey"], sim["grey_last_dir"])
+                    except TypeError:
+                        sim["grey"] = algo(current_grid, old_grey, sim["prey"])
                 # cập nhật last_dir
                 dr = sim["grey"][0] - old_grey[0]
                 dc = sim["grey"][1] - old_grey[1]
