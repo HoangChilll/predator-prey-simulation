@@ -8,7 +8,7 @@ def _f(size):
     if size not in _FONTS:
         _FONTS[size] = pygame.font.SysFont("Arial", size)
     return _FONTS[size]
-from ui.grid import grid10x10,grid20x20_2 ,MAZE_20,grid20x20, grid40x40,grid40x40_2
+from ui.grid import grid5x5,grid10x10,grid20x20_2 ,MAZE_20,grid20x20, grid40x40,grid40x40_2
 from ui.dropdown import Dropdown, toggle_dropdown, update_dropdown
 from algorithm.random_maze import generate_random_maze
 
@@ -22,6 +22,7 @@ _RAND_PLUS_RECT  = pygame.Rect(WIDTH // 2 + 34, _RAND_CTR_Y, _BTN_SZ, _BTN_SZ)
 
 
 MATRICES = {
+    "5": grid5x5,
     "10_1": grid10x10,
     "20_2": grid20x20_2,
     "20": MAZE_20,
@@ -256,7 +257,7 @@ def create_ui():
             buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
         ),
         "grid": Dropdown(
-            ["10_1", "20_2", "20_1", "20", "40", "40_2", "random"],
+            ["5", "10_1", "20_2", "20_1", "20", "40", "40_2", "random"],
             buttons[2].rect.x, buttons[2].rect.y + btn_height + 5
         ),
     }
