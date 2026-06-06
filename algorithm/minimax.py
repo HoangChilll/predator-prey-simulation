@@ -85,12 +85,15 @@ def euclid_evaluate(pred_pos, prey_pos, map_data):
 # Minimax Core Algorithm
 # ----------------------------------------------------------------------
 
-def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing, heuristic_fn):
+def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing, heuristic_fn, visited_nodes=None):
     """
     Thuật toán Minimax với Alpha-Beta Pruning.
     Prey là người chơi Maximizing (muốn tối đa hóa khoảng cách).
     Predator là người chơi Minimizing (muốn tối thiểu hóa khoảng cách).
     """
+    if visited_nodes is None:
+        visited_nodes = []
+
     if pred_pos == prey_pos:
         return -1000 # Predator bắt được Prey
     
@@ -101,7 +104,11 @@ def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing, heu
         # Lượt của Prey (Maximizing)
         max_eval = -float('inf')
         for move in get_neighbors(prey_pos, map_data, include_stay=True):
-            eval_score = minimax(map_data, pred_pos, move, depth - 1, alpha, beta, False, heuristic_fn)
+            visited_nodes.append(move)
+            eval_score = minimax(
+                map_data, pred_pos, move, depth - 1, alpha, beta,
+                False, heuristic_fn, visited_nodes=visited_nodes
+            )
             max_eval = max(max_eval, eval_score)
             alpha = max(alpha, eval_score)
             if beta <= alpha:
@@ -111,7 +118,11 @@ def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing, heu
         # Lượt của Predator (Minimizing)
         min_eval = float('inf')
         for move in get_neighbors(pred_pos, map_data, include_stay=False):
-            eval_score = minimax(map_data, move, prey_pos, depth - 1, alpha, beta, True, heuristic_fn)
+            visited_nodes.append(move)
+            eval_score = minimax(
+                map_data, move, prey_pos, depth - 1, alpha, beta,
+                True, heuristic_fn, visited_nodes=visited_nodes
+            )
             min_eval = min(min_eval, eval_score)
             beta = min(beta, eval_score)
             if beta <= alpha:
@@ -128,7 +139,10 @@ def get_predator_move(map_data, pred_pos, prey_pos, depth, heuristic_fn):
     
     for move in get_neighbors(pred_pos, map_data, include_stay=False):
         visited_nodes.append(move)
-        eval_score = minimax(map_data, move, prey_pos, depth - 1, -float('inf'), float('inf'), True, heuristic_fn)
+        eval_score = minimax(
+            map_data, move, prey_pos, depth - 1, -float('inf'), float('inf'), True,
+            heuristic_fn, visited_nodes=visited_nodes
+        )
         score_map[move] = eval_score
         if eval_score < best_eval:
             best_eval = eval_score
@@ -147,7 +161,10 @@ def get_prey_move(map_data, pred_pos, prey_pos, depth, heuristic_fn):
     
     for move in get_neighbors(prey_pos, map_data, include_stay=True):
         visited_nodes.append(move)
-        eval_score = minimax(map_data, pred_pos, move, depth - 1, -float('inf'), float('inf'), False, heuristic_fn)
+        eval_score = minimax(
+            map_data, pred_pos, move, depth - 1, -float('inf'), float('inf'), False,
+            heuristic_fn, visited_nodes=visited_nodes
+        )
         score_map[move] = eval_score
         if eval_score > best_eval:
             best_eval = eval_score
