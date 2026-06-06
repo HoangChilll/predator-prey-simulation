@@ -2,6 +2,7 @@
 import heapq
 from collections import deque
 from ui.constants import DIRECTIONS, is_valid
+from algorithm.visited_tracker import set_visited
  
 def flood_fill(grid, start, blocked=None):
     """
@@ -158,7 +159,7 @@ def voronoi_prey_area(grid, prey_pos, pred_pos):
 # Hàm chính — Prey Move
 # ============================================================
  
-def prey_move(grid, self_pos, opponent_pos):
+def prey_space_ap(grid, self_pos, opponent_pos):
     """
     Heuristic A* cho Prey.
  
@@ -266,5 +267,9 @@ def prey_move(grid, self_pos, opponent_pos):
     chosen_move = best[1]
     print(f"[Prey] pos={prey_pos} -> move={chosen_move} | "
           f"area={best[2]} | ap_penalty={best[3]:.1f} | score={best[0]:.2f}")
- 
+
+    # Ghi visited: các bước đi được cân nhắc + vị trí hiện tại
+    visited_cells = [prey_pos] + valid_moves
+    set_visited(visited_cells, [prey_pos, chosen_move])
+
     return tuple(chosen_move)

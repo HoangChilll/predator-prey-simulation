@@ -2,6 +2,7 @@ import pygame
 
 from ui.stage2 import create_ui
 from ui.constants import WIDTH, HEIGHT, GRID_AREA
+from algorithm.visited_tracker import get_display
 
 # SCREEN
 pygame.init()
@@ -27,11 +28,17 @@ def valid(pos, size):
     return True
 
 
-# ── DRAW GRID ──────────────────────────────────────────────────────────────
+# ── DRAW GRID ──────────────────────────────────────────────────────────────────────────
 
 def draw_grid(screen, grid):
     size = len(grid)
     cell = get_cell(size)
+
+    # Lấy visited cells từ animation controller (main.py)
+    visited_cells, path_cells, score_map = get_display()
+    visited_set = set(visited_cells)
+    path_set    = set(path_cells)
+    score_map   = score_map or {}
 
     for row in range(size):
         for col in range(size):
@@ -47,6 +54,29 @@ def draw_grid(screen, grid):
 
             pygame.draw.rect(screen, color, rect)
             pygame.draw.rect(screen, (32, 36, 52), rect, 1)
+
+            # Vẽ overlay visualize (chỉ trên ô đi được, không đẩy đặn tường)
+            if v == 0:
+                pos = (row, col)
+                if pos in path_set:
+                    # Đường đi tìm được → vàng ấm (ưu tiên cao hơn visited)
+                    overlay = pygame.Surface((cell, cell), pygame.SRCALPHA)
+                    overlay.fill((255, 210, 60, 115))
+                    screen.blit(overlay, rect)
+                    # Viền vàng mỏng
+                    pygame.draw.rect(screen, (255, 195, 30), rect, max(1, cell // 12))
+                elif pos in visited_set:
+                    # Ô đã duyệt → xanh lam/tím nhạt
+                    overlay = pygame.Surface((cell, cell), pygame.SRCALPHA)
+                    overlay.fill((80, 130, 255, 80))
+                    screen.blit(overlay, rect)
+                    # Viền xanh rất nhẹ
+                    pygame.draw.rect(screen, (60, 120, 220), rect, max(1, cell // 18))
+                    if pos in score_map:
+                        score = score_map[pos]
+                        score_text = f"{score:.1f}" if isinstance(score, float) else str(score)
+                        label = _f(14).render(score_text, True, (235, 235, 235))
+                        screen.blit(label, label.get_rect(center=rect.center))
 
 
 
@@ -125,6 +155,7 @@ def draw_sim_ui(screen, font, sim):
     _legend_dot(205, (210, 48, 48), (255, 90, 90), "Predator")
     _legend_dot(233, (38, 195, 95), (90, 245, 145), "Prey")
 
+<<<<<<< HEAD
     pygame.draw.line(screen, (35, 55, 105), (px + 8, 262), (WIDTH - 8, 262), 1)
 
     # vẽ trạng thái running/stopped
@@ -135,6 +166,35 @@ def draw_sim_ui(screen, font, sim):
     screen.blit(_f(19).render(st_text, True, st_color), (sx, 292))
     pygame.draw.line(screen, (35, 55, 105), (px + 8, 320), (WIDTH - 8, 320), 1)
     screen.blit(_f(16).render("CONTROLS", True, (90, 125, 182)), (sx, 330))
+=======
+    # Visited color legend
+    def _legend_rect(y, bg_color, border_color, label):
+        r = pygame.Rect(sx + 5, y + 5, 18, 18)
+        s = pygame.Surface((18, 18), pygame.SRCALPHA)
+        s.fill((*bg_color, 100))
+        screen.blit(s, (sx + 5, y + 5))
+        pygame.draw.rect(screen, border_color, r, 2)
+        screen.blit(_f(16).render(label, True, (185, 188, 205)), (sx + 28, y + 6))
+
+    _legend_rect(261, (80, 130, 255),  (60, 120, 220),  "Duyệt")
+    _legend_rect(284, (255, 210, 60), (255, 195, 30), "Đường đi")
+
+    # Divider 2
+    pygame.draw.line(screen, (35, 55, 105), (px + 8, 313), (WIDTH - 8, 313), 1)
+
+    # ── Status
+    screen.blit(_f(16).render("STATUS", True, (90, 125, 182)), (sx, 323))
+    running = sim.get("running", True)
+    st_text  = "RUNNING"   if running else "STOPPED"
+    st_color = (50, 208, 105) if running else (225, 72, 72)
+    screen.blit(_f(19).render(st_text, True, st_color), (sx, 343))
+
+    # Divider 3
+    pygame.draw.line(screen, (35, 55, 105), (px + 8, 373), (WIDTH - 8, 373), 1)
+
+    # Button area label
+    screen.blit(_f(16).render("CONTROLS", True, (90, 125, 182)), (sx, 383))
+>>>>>>> ecff02b (update)
 
 
 # vẽ game play

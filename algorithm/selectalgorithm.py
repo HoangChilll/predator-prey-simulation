@@ -1,27 +1,35 @@
 
-from algorithm.greedy import predatorgreedy, preygreedy
+from algorithm.greedy import predator_greedy, prey_greedy
 from algorithm.random import random_move
-from algorithm.dfs import predator_dfs_move,prey_dfs_move
-from algorithm.A_hes import predator_move
-from algorithm.Khanhaphabeta import predator_minimax_shortest_path as khanh_predator_minimax, prey_minimax_shortest_path as khanh_prey_minimax
-from algorithm.prey_A_star import prey_move
-from algorithm.minimax_shortest_path import predator_minimax_shortest_path, prey_minimax_shortest_path
-from algorithm.minimax_euclid import predator_minimax_euclid, prey_minimax_euclid
+from algorithm.dfs import predator_dfs_move
+from algorithm.predator_space_control import predator_space_control
+from algorithm.prey_space_ap import prey_space_ap
+from algorithm.prey_weighted_evade import prey_weighted_evade
+from algorithm.minimax import (
+    predator_minimax_shortest_path, prey_minimax_shortest_path,
+    predator_minimax_euclid, prey_minimax_euclid,
+)
+from algorithm.prey_adaptive import prey_adaptive
+from algorithm.A_star import predator_astar
+from algorithm.bfs import predator_bfs
 
 ALGORITHMS = {
     "random": random_move,
 
     # Predator algorithms
-    "pred_greedy": predatorgreedy,
+    "pred_greedy": predator_greedy,
     "pred_dfs": predator_dfs_move,
-    "pred_A*": predator_move,
+    "pred_bfs": predator_bfs,
+    "pred_a_star": predator_astar,
+    "pred_control": predator_space_control,
     "pred_minimax_shortest": predator_minimax_shortest_path,
     "pred_minimax_euclid": predator_minimax_euclid,
 
     # Prey algorithms
-    "prey_greedy": preygreedy,
-    "prey_dfs": prey_dfs_move,
-    "prey_A*": prey_move,
+    "prey_greedy": prey_greedy,
+    "prey_space_ap": prey_space_ap,
+    "prey_weighted_evade": prey_weighted_evade,
+    "prey_adaptive": prey_adaptive,
     "prey_minimax_shortest": prey_minimax_shortest_path,
     "prey_minimax_euclid": prey_minimax_euclid,
 }
@@ -29,3 +37,5 @@ def selectAlgorithm(name):
     if name not in ALGORITHMS:
         raise ValueError(f"Algorithm '{name}' không tồn tại")
     return ALGORITHMS[name]
+
+

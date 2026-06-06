@@ -1,5 +1,6 @@
 import heapq
 from ui.constants import DIRECTIONS, is_valid
+from algorithm.visited_tracker import set_visited
 
 
 
@@ -12,7 +13,7 @@ def heuristic(a, b):
 
 
 
-def predatorgreedy(grid, self_pos, opponent_pos):
+def predator_greedy(grid, self_pos, opponent_pos):
     """
     Greedy Best-First Search cho con đi săn.
 
@@ -34,6 +35,7 @@ def predatorgreedy(grid, self_pos, opponent_pos):
 
     open_list = []
     counter = 0
+    visited_order = []   # Thứ tự duyệt để visualize
 
 
     # Priority queue ưu tiên ô có h(n) nhỏ nhất
@@ -46,6 +48,7 @@ def predatorgreedy(grid, self_pos, opponent_pos):
 
     while open_list:
         _, _, current = heapq.heappop(open_list)
+        visited_order.append(current)
 
 
         if current == goal:
@@ -69,6 +72,7 @@ def predatorgreedy(grid, self_pos, opponent_pos):
 
     # Nếu không tìm được đường thì đứng yên
     if goal not in parent:
+        set_visited(visited_order, [])
         return start
 
 
@@ -84,6 +88,8 @@ def predatorgreedy(grid, self_pos, opponent_pos):
 
     path.reverse()
 
+    # Ghi visited để visualize
+    set_visited(visited_order, path)
 
     # path[0] là current, path[1] là bước tiếp theo
     if len(path) < 2:
@@ -96,7 +102,7 @@ def predatorgreedy(grid, self_pos, opponent_pos):
 
 
 
-def preygreedy(grid, self_pos, opponent_pos):
+def prey_greedy(grid, self_pos, opponent_pos):
     """
     Greedy cho Prey.
 
@@ -134,6 +140,4 @@ def preygreedy(grid, self_pos, opponent_pos):
 
 
     return best_move
-
-
-# tí nx tôi commit cái này lên, thì ô switch sang nhánh ui rồi chạy trên đấy, đừng push lên, sửa gì thì bảo tôi, 
+ 

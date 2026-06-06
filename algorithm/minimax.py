@@ -1,4 +1,10 @@
 from collections import deque
+import math
+from algorithm.visited_tracker import set_visited
+
+# ----------------------------------------------------------------------
+# Heuristics & Distance calculation functions
+# ----------------------------------------------------------------------
 
 def bfs_distance(start, target, map_data):
     """Tính khoảng cách ngắn nhất bằng BFS giữa hai điểm trên bản đồ."""
@@ -34,6 +40,15 @@ def bfs_distance(start, target, map_data):
     
     return 100 # Không tìm thấy đường đi
 
+
+def euclid_distance(a, b):
+    """Tính khoảng cách Euclid giữa 2 điểm."""
+    return (
+        (a[0] - b[0]) ** 2 +
+        (a[1] - b[1]) ** 2
+    ) ** 0.5
+
+
 def get_neighbors(pos, map_data, include_stay=True):
     """Lấy danh sách các vị trí lân cận hợp lệ."""
     x, y = pos
@@ -57,11 +72,20 @@ def get_neighbors(pos, map_data, include_stay=True):
                 neighbors.append((nx, ny))
     return neighbors
 
-def evaluate(pred_pos, prey_pos, map_data):
-    """Hàm đánh giá: khoảng cách BFS giữa Predator và Prey."""
+
+# Heuristic wrappers for evaluate
+def bfs_evaluate(pred_pos, prey_pos, map_data):
     return bfs_distance(pred_pos, prey_pos, map_data)
 
-def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing):
+def euclid_evaluate(pred_pos, prey_pos, map_data):
+    return euclid_distance(pred_pos, prey_pos)
+
+
+# ----------------------------------------------------------------------
+# Minimax Core Algorithm
+# ----------------------------------------------------------------------
+
+def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing, heuristic_fn):
     """
     Thuật toán Minimax với Alpha-Beta Pruning.
     Prey là người chơi Maximizing (muốn tối đa hóa khoảng cách).
@@ -71,15 +95,15 @@ def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing):
         return -1000 # Predator bắt được Prey
     
     if depth == 0:
-        return evaluate(pred_pos, prey_pos, map_data)
+        return heuristic_fn(pred_pos, prey_pos, map_data)
 
     if is_maximizing:
         # Lượt của Prey (Maximizing)
         max_eval = -float('inf')
         for move in get_neighbors(prey_pos, map_data, include_stay=True):
-            eval = minimax(map_data, pred_pos, move, depth - 1, alpha, beta, False)
-            max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
+            eval_score = minimax(map_data, pred_pos, move, depth - 1, alpha, beta, False, heuristic_fn)
+            max_eval = max(max_eval, eval_score)
+            alpha = max(alpha, eval_score)
             if beta <= alpha:
                 break
         return max_eval
@@ -87,48 +111,68 @@ def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing):
         # Lượt của Predator (Minimizing)
         min_eval = float('inf')
         for move in get_neighbors(pred_pos, map_data, include_stay=False):
-            eval = minimax(map_data, move, prey_pos, depth - 1, alpha, beta, True)
-            min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
+            eval_score = minimax(map_data, move, prey_pos, depth - 1, alpha, beta, True, heuristic_fn)
+            min_eval = min(min_eval, eval_score)
+            beta = min(beta, eval_score)
             if beta <= alpha:
                 break
         return min_eval
 
-def get_predator_move(map_data, pred_pos, prey_pos, depth=3):
-    """
-    Tìm nước đi tối ưu cho Predator.
-    Trả về: (nx, ny) là tọa độ nước đi tiếp theo.
-    """
+
+def get_predator_move(map_data, pred_pos, prey_pos, depth, heuristic_fn):
+    """Tìm nước đi tối ưu cho Predator."""
     best_eval = float('inf')
     best_move = pred_pos
+    visited_nodes = [pred_pos]   # Ghi lại các ô đã xem xét ở level 1
+    score_map = {}
     
     for move in get_neighbors(pred_pos, map_data, include_stay=False):
-        eval = minimax(map_data, move, prey_pos, depth - 1, -float('inf'), float('inf'), True)
-        if eval < best_eval:
-            best_eval = eval
+        visited_nodes.append(move)
+        eval_score = minimax(map_data, move, prey_pos, depth - 1, -float('inf'), float('inf'), True, heuristic_fn)
+        score_map[move] = eval_score
+        if eval_score < best_eval:
+            best_eval = eval_score
             best_move = move
-            
+
+    set_visited(visited_nodes, [pred_pos, best_move], scores=score_map)
     return best_move
 
-def get_prey_move(map_data, pred_pos, prey_pos, depth=3):
-    """
-    Tìm nước đi tối ưu cho Prey.
-    Trả về: (nx, ny) là tọa độ nước đi tiếp theo.
-    """
+
+def get_prey_move(map_data, pred_pos, prey_pos, depth, heuristic_fn):
+    """Tìm nước đi tối ưu cho Prey."""
     best_eval = -float('inf')
     best_move = prey_pos
+    visited_nodes = [prey_pos]   # Ghi lại các ô đã xem xét ở level 1
+    score_map = {}
     
     for move in get_neighbors(prey_pos, map_data, include_stay=True):
-        eval = minimax(map_data, pred_pos, move, depth - 1, -float('inf'), float('inf'), False)
-        if eval > best_eval:
-            best_eval = eval
+        visited_nodes.append(move)
+        eval_score = minimax(map_data, pred_pos, move, depth - 1, -float('inf'), float('inf'), False, heuristic_fn)
+        score_map[move] = eval_score
+        if eval_score > best_eval:
+            best_eval = eval_score
             best_move = move
+
+    set_visited(visited_nodes, [prey_pos, best_move], scores=score_map)
     return best_move
 
+
+# ----------------------------------------------------------------------
+# Public API Wrappers (depth=4)
+# ----------------------------------------------------------------------
+
+# 1. Shortest Path (BFS)
 def predator_minimax_shortest_path(map_data, pred_pos, prey_pos):
-    """Wrapper cho Predator Minimax với 3 tham số đầu vào (depth=4)."""
-    return get_predator_move(map_data, pred_pos, prey_pos, depth=4)
+    return get_predator_move(map_data, pred_pos, prey_pos, depth=4, heuristic_fn=bfs_evaluate)
 
 def prey_minimax_shortest_path(map_data, prey_pos, pred_pos):
-    """Wrapper cho Prey Minimax với 3 tham số đầu vào (depth=4)."""
-    return get_prey_move(map_data, pred_pos, prey_pos, depth=4)
+    return get_prey_move(map_data, pred_pos, prey_pos, depth=4, heuristic_fn=bfs_evaluate)
+
+
+# 2. Euclid
+def predator_minimax_euclid(map_data, pred_pos, prey_pos):
+    return get_predator_move(map_data, pred_pos, prey_pos, depth=4, heuristic_fn=euclid_evaluate)
+
+def prey_minimax_euclid(map_data, prey_pos, pred_pos):
+    return get_prey_move(map_data, pred_pos, prey_pos, depth=4, heuristic_fn=euclid_evaluate)
+

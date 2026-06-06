@@ -1,5 +1,6 @@
 from collections import deque
 import heapq
+from algorithm.visited_tracker import set_visited
 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]   # lên, xuống, trái, phải
 
@@ -158,6 +159,7 @@ def astar_flee(grid, self_pos, opponent_pos):
 
 
 # thuật toán chính
+<<<<<<< HEAD:algorithm/A_heuprey.py
 <<<<<<< HEAD
 def grey_move(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
     nxt = evade(grid, self_pos, opponent_pos, last_dir, pred_speed)
@@ -171,3 +173,18 @@ def prey_move(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
         nxt = astar_flee(grid, self_pos, opponent_pos)
     return nxt
 >>>>>>> 88e5035 (update)
+=======
+def prey_weighted_evade(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
+    nxt = evade(grid, self_pos, opponent_pos, last_dir, pred_speed)
+    if nxt is None:
+        nxt = astar_flee(grid, self_pos, opponent_pos)
+    # Ghi visited: các ô lân cận được cân nhắc + bước đi tiếp theo
+    visited_cells = [self_pos] + [
+        (self_pos[0] + dr, self_pos[1] + dc)
+        for dr, dc in DIRS
+        if 0 <= self_pos[0]+dr < len(grid) and 0 <= self_pos[1]+dc < len(grid[0])
+        and grid[self_pos[0]+dr][self_pos[1]+dc] == 0
+    ]
+    set_visited(visited_cells, [self_pos, nxt] if nxt != self_pos else [self_pos])
+    return nxt
+>>>>>>> ecff02b (update):algorithm/prey_weighted_evade.py

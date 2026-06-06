@@ -1,6 +1,7 @@
 import heapq
 from collections import deque
 from ui.constants import DIRECTIONS, is_valid
+from algorithm.visited_tracker import set_visited
  
  # thuật toán tìm không gian sống của prey
  #start là vị trí xuất phát của prey , blocked là vị trí của predator, prey không được đi vào 
@@ -97,11 +98,22 @@ def next_step(grid, start, goal, blocked=None):
     open_heap = [(manhattan(start, goal), 0, start)]
     g_score   = {start: 0}
     came_from = {}
+    visited_order = []   # Thứ tự duyệt để visualize
  
     while open_heap:
         f, g, current = heapq.heappop(open_heap)
+        visited_order.append(current)
  
         if current == goal:
+            # Truy vết path để gửi visualize
+            path = []
+            node = current
+            while node in came_from:
+                path.append(node)
+                node = came_from[node]
+            path.append(start)
+            path.reverse()
+            set_visited(visited_order, path)
             # Truy vết về bước đầu tiên
             while came_from.get(current) != start:
                 current = came_from[current]
@@ -120,6 +132,7 @@ def next_step(grid, start, goal, blocked=None):
                 f_new = tentative_g + manhattan(neighbor, goal)
                 heapq.heappush(open_heap, (f_new, tentative_g, neighbor))
  
+    set_visited(visited_order, [])
     return start  # Không tìm được đường
  
  
@@ -164,10 +177,12 @@ def optimize_move(grid, pred_pos, prey_pos, valid_moves):
     current_prey_area = len(flood_fill(grid, prey_pos, blocked={pred_pos}))
     best_move = None
     best_reduction = 0
+    visited_order = [pred_pos]
 
     for move in valid_moves:
         new_prey_area = len(flood_fill(grid, prey_pos, blocked={move}))
         reduction = current_prey_area - new_prey_area
+        visited_order.append(move)
         if reduction > best_reduction:
             best_reduction = reduction
             best_move = move
@@ -177,13 +192,14 @@ def optimize_move(grid, pred_pos, prey_pos, valid_moves):
         # (nhất quán với điều kiện guard của chiến lược AP)
         if _bfs_dist(grid, best_move, prey_pos) <= _bfs_dist(grid, pred_pos, prey_pos):
             print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
+            set_visited(visited_order, [pred_pos, best_move])
             return best_move
         print(f"[Predator] SHRINK SKIP (would move away from prey) | pos={pred_pos} -> skip={best_move} | reduction={best_reduction}")
 
     return None  # Không thể tối ưu → fallback A*
 
 # thuật toán cho kẻ săn mồi, nếu tối ưu được vùng sống thì dùng không được thì dùng A* mặc định
-def predator_move(grid, self_pos, opponent_pos):
+def predator_space_control(grid, self_pos, opponent_pos):
     pred_pos = self_pos
     prey_pos = opponent_pos
 
@@ -199,6 +215,7 @@ def predator_move(grid, self_pos, opponent_pos):
     #  Prey kề cạnh → bắt ngay
     if prey_pos in valid_moves:
         print(f"[Predator] CATCH | pos={pred_pos} -> prey={prey_pos}")
+        set_visited([pred_pos, prey_pos], [pred_pos, prey_pos])
         return prey_pos
 
     #  Tối ưu được vùng sống dùng chiến lược AP / Shrink

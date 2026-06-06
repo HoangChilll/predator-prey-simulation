@@ -119,10 +119,10 @@ def draw_config(screen, font, buttons, dropdowns, config=None):
 
     # vẽ nút
     row1_meta = [
-        ("PRED ALGORITHM",  "pred"),
-        ("PREY ALGORITHM",  "prey"),
-        ("MAP LAYOUT",      "grid"),
-        ("PREDATOR STEPS", None),
+        ("PREDATOR ALGORITHM",  "pred"),
+        ("PREY ALGORITHM",      "prey"),
+        ("MAP LAYOUT",          "grid"),
+        ("PREDATOR STEPS",      None),
     ]
     for i, (lbl_text, dd_key) in enumerate(row1_meta):
         if i >= len(buttons):
@@ -224,7 +224,7 @@ def handle_config_click(pos, buttons, dropdowns, config):
 def create_ui():
     btn_width = 120
     btn_height = 40
-    btn_spacing = 20
+    btn_spacing = 50
 
     # Hàng 1: 4 nút tùy chọn (PRED, PREY, GRID, Steps)
     n_row1 = 4
@@ -249,11 +249,11 @@ def create_ui():
 
     dropdowns = {
         "prey": Dropdown(
-            ["random", "prey_greedy", "prey_dfs", "prey_A*", "prey_minimax_shortest", "prey_minimax_euclid"],
+            ["random", "prey_greedy", "prey_space_ap", "prey_weighted_evade", "prey_adaptive", "prey_minimax_shortest", "prey_minimax_euclid"],
             buttons[0].rect.x, buttons[0].rect.y + btn_height + 5
         ),
         "pred": Dropdown(
-            ["random", "pred_greedy", "pred_dfs", "pred_A*", "pred_minimax_shortest", "pred_minimax_euclid"],
+            ["random", "pred_greedy", "pred_dfs", "pred_control", "pred_a_star", "pred_bfs", "pred_minimax_shortest", "pred_minimax_euclid"],
             buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
         ),
         "grid": Dropdown(

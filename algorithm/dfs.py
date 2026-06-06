@@ -1,5 +1,5 @@
 from ui.constants import DIRECTIONS, is_valid
-
+from algorithm.visited_tracker import set_visited
 
 def heuristic(a, b):
     """
@@ -17,24 +17,18 @@ def heuristic(a, b):
     """
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-
-
-
 def predator_dfs_move(grid, self_pos, opponent_pos):
     """
     Thuật toán Depth-First Search (DFS).
-
 
     Input chuẩn:
     - grid: ma trận bản đồ
     - self_pos: vị trí hiện tại của agent, dạng (x, y)
     - opponent_pos: vị trí đối thủ, dạng (x, y)
 
-
     Output:
     - vị trí tiếp theo agent sẽ đi, dạng (x, y)
     """
-
 
     # Ép về tuple để dùng làm key trong dict/set
     start = tuple(self_pos)
@@ -45,6 +39,7 @@ def predator_dfs_move(grid, self_pos, opponent_pos):
     # LIFO: node đưa vào sau cùng sẽ được lấy ra trước
     stack = [(start, [start])]
     visited = set()
+    visited_order = []   # Thứ tự duyệt để visualize
 
 
     while stack:
@@ -58,10 +53,13 @@ def predator_dfs_move(grid, self_pos, opponent_pos):
            
         # Đánh dấu đã thăm
         visited.add(current)
+        visited_order.append(current)
 
 
         # Nếu tới đích thì dừng
         if current == goal:
+            # Ghi visited để visualize
+            set_visited(visited_order, path)
             # Nếu có đường đi, trả về bước đầu tiên (sau start)
             if len(path) > 1:
                 return path[1]
@@ -83,49 +81,8 @@ def predator_dfs_move(grid, self_pos, opponent_pos):
 
 
     # Nếu không tìm được đường thì đứng yên
+    set_visited(visited_order, [])
     return start
-
-
-
-
-def prey_dfs_move(grid, self_pos, opponent_pos):
-    """
-    Logic di chuyển cho Prey.
-
-
-    Input chuẩn:
-    - grid: ma trận bản đồ
-    - self_pos: vị trí hiện tại của prey
-    - opponent_pos: vị trí predator
-
-
-    Ý tưởng:
-    - Prey vẫn ưu tiên chọn ô làm khoảng cách tới predator lớn nhất để sống sót.
-    """
-
-
-    start = tuple(self_pos)
-    predator = tuple(opponent_pos)
-
-
-    best_move = start
-    max_distance = -1
-
-
-    for dx, dy in DIRECTIONS:
-        candidate = (start[0] + dx, start[1] + dy)
-
-        if is_valid(candidate, grid):
-            dist = heuristic(candidate, predator)
-
-
-            # Chọn ô xa predator nhất
-            if dist > max_distance:
-                max_distance = dist
-                best_move = candidate
-
-
-    return best_move
 
 
 
