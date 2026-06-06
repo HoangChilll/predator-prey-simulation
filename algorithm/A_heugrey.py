@@ -87,8 +87,13 @@ def a_star(grid, start, goal):
 # ----------------------------------------------------------------------
 # NÉ THÔNG MINH (logic chính)
 #   - Vùng nguy hiểm = pred_speed bước tiếp theo của predator + lân cận
+<<<<<<< HEAD
 #   - Ngưỡng lọc: pd <= pred_speed (predator đến được trong 1 lượt grey)
 #   - Voronoi: grey cần tới trước predator tính theo tốc độ thực
+=======
+#   - Ngưỡng lọc: pd <= pred_speed (predator đến được trong 1 lượt prey)
+#   - Voronoi: prey cần tới trước predator tính theo tốc độ thực
+>>>>>>> 88e5035 (update)
 # ----------------------------------------------------------------------
 W = dict(DIST=2.4, SPACE=1.5, EXIT=1.0, VOR=0.5, WALL=1.0, DANGER=9.0)
 
@@ -153,8 +158,16 @@ def astar_flee(grid, self_pos, opponent_pos):
 
 
 # thuật toán chính
+<<<<<<< HEAD
 def grey_move(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
     nxt = evade(grid, self_pos, opponent_pos, last_dir, pred_speed)
     if nxt is None:
         nxt = astar_flee(grid, self_pos, opponent_pos)
     return nxt
+=======
+def prey_move(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
+    nxt = evade(grid, self_pos, opponent_pos, last_dir, pred_speed)
+    if nxt is None:
+        nxt = astar_flee(grid, self_pos, opponent_pos)
+    return nxt
+>>>>>>> 88e5035 (update)

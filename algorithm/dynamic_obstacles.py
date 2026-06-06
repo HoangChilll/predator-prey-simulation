@@ -34,14 +34,14 @@ class DynamicObstacleManager:
     # Public API
     # ------------------------------------------------------------------
 
-    def update(self, step: int, grey_pos: tuple, prey_pos: tuple) -> None:
+    def update(self, step: int, predator_pos: tuple, prey_pos: tuple) -> None:
         """Gọi sau mỗi bước sim. Chỉ thực sự cập nhật khi đến interval."""
         if step == 0 or step % self.update_interval != 0:
             return
 
         rows = len(self.static_grid)
         cols = len(self.static_grid[0])
-        forbidden = {grey_pos, prey_pos}
+        forbidden = {predator_pos, prey_pos}
 
         if not self.obstacles:
             action = "add"

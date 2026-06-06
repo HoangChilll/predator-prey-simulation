@@ -2,8 +2,8 @@ import heapq
 from collections import deque
 from ui.constants import DIRECTIONS, is_valid
  
- # thuật toán tìm không gian sống của grey
- #start là vị trí xuất phát của grey , blocked là vị trí của prey, grey không được đi vào 
+ # thuật toán tìm không gian sống của prey
+ #start là vị trí xuất phát của prey , blocked là vị trí của predator, prey không được đi vào 
 def flood_fill(grid, start, blocked=None):
     if blocked is None:
         blocked = set()
@@ -18,12 +18,12 @@ def flood_fill(grid, start, blocked=None):
                 queue.append(nxt)
     return visited  # tất cả các ô có thể đi được từ start hay không gian sống
  
-# thuật toán tìm Articulation Points (điểm thắt cổ chai) hay điểm mà prey đến được đó thì grey sẽ bị nhốt
+# thuật toán tìm Articulation Points (điểm thắt cổ chai) hay điểm mà prey đến được đó thì prey sẽ bị nhốt
 # Tham khao thuật toán Tarjan (DFS iterative để tránh RecursionError).
 def find_articulation_points(grid, start, blocked=None):
     if blocked is None:
         blocked = set()
-    # Chỉ xét các ô Grey có thể đến được
+    # Chỉ xét các ô prey có thể đến được
     reachable = flood_fill(grid, start, blocked)
     if not reachable:
         return set()
@@ -142,47 +142,50 @@ def _bfs_dist(grid, start, goal):
     return float('inf')
 
 #
-def optimize_move(grid, pred_pos, grey_pos, valid_moves):
+def optimize_move(grid, pred_pos, prey_pos, valid_moves):
 
     # Chiến lược 1: AP tìm đến điểm thắt cổ chai
-    art_points = find_articulation_points(grid, grey_pos, blocked={pred_pos})
+    art_points = find_articulation_points(grid, prey_pos, blocked={pred_pos})
     valuable_aps = [
         ap for ap in art_points
-        if _bfs_dist(grid, pred_pos, ap) <= _bfs_dist(grid, grey_pos, ap)
+        if _bfs_dist(grid, pred_pos, ap) <= _bfs_dist(grid, prey_pos, ap)
     ]
 
     if valuable_aps:
-        best_ap = min(valuable_aps, key=lambda ap: _bfs_dist(grid, grey_pos, ap))
+        best_ap = min(valuable_aps, key=lambda ap: _bfs_dist(grid, prey_pos, ap))
         ap_move = next_step(grid, pred_pos, best_ap)
         if ap_move != pred_pos:
-            # Chỉ dùng AP nếu bước đó không làm predator xa grey hơn
-            if _bfs_dist(grid, ap_move, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
+            # Chỉ dùng AP nếu bước đó không làm predator xa prey hơn
+            if _bfs_dist(grid, ap_move, prey_pos) <= _bfs_dist(grid, pred_pos, prey_pos):
+                print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={ap_move}")
                 return ap_move
 
-    # Chiến lược 2: Shrink tìm đến điểm làm giảm không gian sống của grey
-    current_grey_area = len(flood_fill(grid, grey_pos, blocked={pred_pos}))
+    # Chiến lược 2: Shrink tìm đến điểm làm giảm không gian sống của prey
+    current_prey_area = len(flood_fill(grid, prey_pos, blocked={pred_pos}))
     best_move = None
     best_reduction = 0
 
     for move in valid_moves:
-        new_grey_area = len(flood_fill(grid, grey_pos, blocked={move}))
-        reduction = current_grey_area - new_grey_area
+        new_prey_area = len(flood_fill(grid, prey_pos, blocked={move}))
+        reduction = current_prey_area - new_prey_area
         if reduction > best_reduction:
             best_reduction = reduction
             best_move = move
 
     if best_move is not None:
-        # Chỉ dùng Shrink nếu bước đó không làm predator xa grey hơn
+        # Chỉ dùng Shrink nếu bước đó không làm predator xa prey hơn
         # (nhất quán với điều kiện guard của chiến lược AP)
-        if _bfs_dist(grid, best_move, grey_pos) <= _bfs_dist(grid, pred_pos, grey_pos):
+        if _bfs_dist(grid, best_move, prey_pos) <= _bfs_dist(grid, pred_pos, prey_pos):
+            print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
             return best_move
+        print(f"[Predator] SHRINK SKIP (would move away from prey) | pos={pred_pos} -> skip={best_move} | reduction={best_reduction}")
 
     return None  # Không thể tối ưu → fallback A*
 
 # thuật toán cho kẻ săn mồi, nếu tối ưu được vùng sống thì dùng không được thì dùng A* mặc định
 def predator_move(grid, self_pos, opponent_pos):
     pred_pos = self_pos
-    grey_pos = opponent_pos
+    prey_pos = opponent_pos
 
     px, py = pred_pos
     valid_moves = [
@@ -193,17 +196,18 @@ def predator_move(grid, self_pos, opponent_pos):
     if not valid_moves:
         return pred_pos
 
-    #  Grey kề cạnh → bắt ngay
-    if grey_pos in valid_moves:
-        return grey_pos
+    #  Prey kề cạnh → bắt ngay
+    if prey_pos in valid_moves:
+        print(f"[Predator] CATCH | pos={pred_pos} -> prey={prey_pos}")
+        return prey_pos
 
-    #  Tối ưu được vùng sống  dùng chiến lược AP / Shrink
-    optimize_move1 = optimize_move(grid, pred_pos, grey_pos, valid_moves)
+    #  Tối ưu được vùng sống dùng chiến lược AP / Shrink
+    optimize_move1 = optimize_move(grid, pred_pos, prey_pos, valid_moves)
     if optimize_move1 is not None:
         return optimize_move1
 
     # Không tối ưu được dùng A* mặc định (đường chim bay)
-    astar_move1 = next_step(grid, pred_pos, grey_pos)
+    astar_move1 = next_step(grid, pred_pos, prey_pos)
     if astar_move1 != pred_pos:
         return astar_move1
 

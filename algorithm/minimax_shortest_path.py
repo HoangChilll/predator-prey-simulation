@@ -125,10 +125,10 @@ def get_prey_move(map_data, pred_pos, prey_pos, depth=3):
             best_move = move
     return best_move
 
-def prey_minimax_shortest_path(map_data, pred_pos, prey_pos):
+def predator_minimax_shortest_path(map_data, pred_pos, prey_pos):
     """Wrapper cho Predator Minimax với 3 tham số đầu vào (depth=4)."""
     return get_predator_move(map_data, pred_pos, prey_pos, depth=4)
 
-def grey_minimax_shortest_path(map_data, prey_pos, pred_pos):
-    """Wrapper cho Grey Minimax với 3 tham số đầu vào (depth=4)."""
+def prey_minimax_shortest_path(map_data, prey_pos, pred_pos):
+    """Wrapper cho Prey Minimax với 3 tham số đầu vào (depth=4)."""
     return get_prey_move(map_data, pred_pos, prey_pos, depth=4)

@@ -117,11 +117,11 @@ def get_prey_move(map_data, pred_pos, prey_pos, depth=2):
     return best_move
 
 
-def prey_minimax_shortest_path(map_data, pred_pos, prey_pos):
+def predator_minimax_shortest_path(map_data, pred_pos, prey_pos):
     return get_predator_move(map_data, pred_pos, prey_pos, depth=4)
 
 
-def grey_minimax_shortest_path(map_data, prey_pos, pred_pos):
+def prey_minimax_shortest_path(map_data, prey_pos, pred_pos):
     return get_prey_move(map_data, pred_pos, prey_pos, depth=4)
 
 

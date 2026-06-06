@@ -64,12 +64,12 @@ def _draw_agent(screen, cx, cy, radius, fill, glow_col, highlight):
     pygame.draw.circle(screen, (255, 255, 255), (cx - radius // 3, cy - radius // 3), hl_r)
 
 
-def draw_agents(screen, grey, prey, size):
+def draw_agents(screen, predator, prey, size):
     cell = get_cell(size)
 
-    if valid(grey, size):
-        cx = grey[1] * cell + cell // 2
-        cy = grey[0] * cell + cell // 2
+    if valid(predator, size):
+        cx = predator[1] * cell + cell // 2
+        cy = predator[0] * cell + cell // 2
         r  = max(6, cell // 3)
         _draw_agent(screen, cx, cy, r, (210, 48, 48), (255, 50, 50), (255, 90, 90))
 
@@ -104,7 +104,7 @@ def draw_sim_ui(screen, font, sim):
 
     # vẽ turn 
     screen.blit(_f(16).render("TURN", True, (90, 125, 182)), (sx, 120))
-    is_pred = (sim["turn"] == "grey")
+    is_pred = (sim["turn"] == "predator")
     turn_col  = (225, 72, 72)  if is_pred else (50, 208, 105)
     turn_name = "PREDATOR"     if is_pred else "PREY"
     screen.blit(_f(20).render(turn_name, True, turn_col), (sx, 140))

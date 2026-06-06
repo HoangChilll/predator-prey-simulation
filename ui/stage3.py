@@ -6,13 +6,13 @@
 
 # STEP FUNCTION 
 
-def step(prey, grey, grid, prey_algo, grey_algo):
+def step(predator, prey, grid, predator_algo, prey_algo):
 
-    # prey đi trước
-    new_prey = prey_algo(grid, prey, grey)
+    # predator đi trước
+    new_predator = predator_algo(grid, predator, prey)
 
-    # grey đuổi theo prey mới
-    new_grey = grey_algo(grid, grey, new_prey)
+    # prey chạy
+    new_prey = prey_algo(grid, prey, new_predator)
 
-    return new_prey, new_grey
+    return new_predator, new_prey
 

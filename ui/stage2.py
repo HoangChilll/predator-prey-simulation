@@ -44,9 +44,9 @@ def selectMatrix(name):
 def get_config():
     cfg = {
         "grid": "10_1",
+        "predator_algo": "pred_greedy",
         "prey_algo": "random",
-        "grey_algo": "greedy",
-        "prey_steps": 2,
+        "predator_steps": 2,
         "dynamic_obstacle": False
     }
     log(f"INIT CONFIG: {cfg}")
@@ -118,10 +118,10 @@ def draw_config(screen, font, buttons, dropdowns, config=None):
 
     # vẽ nút
     row1_meta = [
+        ("PRED ALGORITHM",  "pred"),
         ("PREY ALGORITHM",  "prey"),
-        ("PRED ALGORITHM",  "grey"),
         ("MAP LAYOUT",      "grid"),
-        ("PREY SPEED",      None),
+        ("PREDATOR STEPS", None),
     ]
     for i, (lbl_text, dd_key) in enumerate(row1_meta):
         if i >= len(buttons):
@@ -178,17 +178,17 @@ def handle_config_click(pos, buttons, dropdowns, config):
                 toggle_dropdown(dropdowns, "prey")
 
 
-            elif btn.text == "GREY":
-                toggle_dropdown(dropdowns, "grey")
+            elif btn.text.lower() == "pred":
+                toggle_dropdown(dropdowns, "pred")
 
 
             elif btn.text == "GRID":
                 toggle_dropdown(dropdowns, "grid")
 
             elif btn.text.startswith("Steps:"):
-                config["prey_steps"] = (config["prey_steps"] % 3) + 1
-                btn.text = f"Steps:{config['prey_steps']}"
-                log(f"PREY STEPS SET TO: {config['prey_steps']}")
+                config["predator_steps"] = (config["predator_steps"] % 3) + 1
+                btn.text = f"Steps:{config['predator_steps']}"
+                log(f"PREDATOR STEPS SET TO: {config['predator_steps']}")
 
             elif "Dynamic" in btn.text:
                 config["dynamic_obstacle"] = not config.get("dynamic_obstacle", False)
@@ -210,7 +210,7 @@ def handle_config_click(pos, buttons, dropdowns, config):
 
     update_dropdown(config, dropdowns, "prey", "prey_algo")
 
-    update_dropdown(config, dropdowns, "grey", "grey_algo")
+    update_dropdown(config, dropdowns, "pred", "predator_algo")
 
     update_dropdown(config, dropdowns, "grid", "grid")
 
@@ -225,14 +225,14 @@ def create_ui():
     btn_height = 40
     btn_spacing = 20
 
-    # Hàng 1: 4 nút tùy chọn (PREY, GREY, GRID, Steps)
+    # Hàng 1: 4 nút tùy chọn (PRED, PREY, GRID, Steps)
     n_row1 = 4
     total_row1_w = n_row1 * btn_width + (n_row1 - 1) * btn_spacing
     row1_x = (WIDTH - total_row1_w) // 2
     row1_y = int(HEIGHT * 0.23)
 
     buttons = []
-    for i, text in enumerate(["PREY", "GREY", "GRID", "Steps:2"]):
+    for i, text in enumerate(["PRED", "PREY", "GRID", "Steps:2"]):
         x = row1_x + i * (btn_width + btn_spacing)
         buttons.append(Button(x, row1_y, btn_width, btn_height, text))
 
@@ -248,11 +248,11 @@ def create_ui():
 
     dropdowns = {
         "prey": Dropdown(
-            ["random", "K_mi_prey", "p_dfs", "p_greedy", "p_A*", "huy_mi_prey"],
+            ["random", "prey_greedy", "prey_dfs", "prey_A*", "prey_minimax_shortest", "prey_minimax_euclid"],
             buttons[0].rect.x, buttons[0].rect.y + btn_height + 5
         ),
-        "grey": Dropdown(
-            ["g_dfs", "K_mi_grey", "g_greedy", "huy_mi_grey", "grey_A*"],
+        "pred": Dropdown(
+            ["random", "pred_greedy", "pred_dfs", "pred_A*", "pred_minimax_shortest", "pred_minimax_euclid"],
             buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
         ),
         "grid": Dropdown(

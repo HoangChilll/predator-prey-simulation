@@ -73,16 +73,16 @@ while running:
                     log("START SIM")
 
                     state = STATE_SIM
-                    step_delay = 1000 + (config.get("prey_steps", 2) - 1) * 300
+                    step_delay = 1000 + (config.get("predator_steps", 2) - 1) * 300
 
                     #  RESET SIM
                     sim = {
-                        "grey": (8, 9),
+                        "predator": (8, 9),
                         "prey": (0, 0),
                         "time": 0,
                         "running": True,
-                        "turn": "grey",
-                        "grey_last_dir": None
+                        "turn": "predator",
+                        "predator_last_dir": None  # track last direction for momentum
                     }
 
                     grid = config["matrix"]
@@ -107,48 +107,46 @@ while running:
     if state == STATE_SIM and sim:
         if sim["running"] and now - last_step > step_delay:
 
-            def caught(grey, prey, catch_range=1):
-                return abs(grey[0] - prey[0]) + abs(grey[1] - prey[1]) <= catch_range
+            def caught(predator, prey, catch_range=1):
+                return abs(predator[0] - prey[0]) + abs(predator[1] - prey[1]) <= catch_range
 
             # Cập nhật vật cản động 
             if dyn_manager:
-                dyn_manager.update(sim["time"], sim["grey"], sim["prey"])
+                dyn_manager.update(sim["time"], sim["predator"], sim["prey"])
 
             # Grid động: chứa cả vật cản động (value=2) nếu bật
             current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
 
-            if sim["turn"] == "grey":
-                algo = selectAlgorithm(config["grey_algo"])
-                old_grey = sim["grey"]
-                try:
-                    sim["grey"] = algo(current_grid, old_grey, sim["prey"], sim["grey_last_dir"],
-                                       config.get("prey_steps", 2))
-                except TypeError:
+            if sim["turn"] == "predator":
+                predator_steps = config.get("predator_steps", 2)
+                for step in range(predator_steps):
+                    algo = selectAlgorithm(config["predator_algo"])
+                    old_predator = sim["predator"]
+                    # truyền last_dir nếu algo là predator_A* (nhận 4 tham số)
                     try:
-                        sim["grey"] = algo(current_grid, old_grey, sim["prey"], sim["grey_last_dir"])
+                        sim["predator"] = algo(current_grid, old_predator, sim["prey"], sim["predator_last_dir"])
                     except TypeError:
-                        sim["grey"] = algo(current_grid, old_grey, sim["prey"])
-                # cập nhật last_dir
-                dr = sim["grey"][0] - old_grey[0]
-                dc = sim["grey"][1] - old_grey[1]
-                sim["grey_last_dir"] = (dr, dc) if (dr, dc) != (0, 0) else sim["grey_last_dir"]
-                if caught(sim["grey"], sim["prey"]):
-                    sim["running"] = False
-                else:
+                        sim["predator"] = algo(current_grid, old_predator, sim["prey"])
+                    # cập nhật last_dir
+                    dr = sim["predator"][0] - old_predator[0]
+                    dc = sim["predator"][1] - old_predator[1]
+                    sim["predator_last_dir"] = (dr, dc) if (dr, dc) != (0, 0) else sim["predator_last_dir"]
+                    if caught(sim["predator"], sim["prey"]):
+                        sim["running"] = False
+                        break
+                if sim["running"]:
                     sim["turn"] = "prey"
 
             else:
-                for _ in range(config.get("prey_steps", 2)):
-                    sim["prey"] = selectAlgorithm(config["prey_algo"])(current_grid, sim["prey"], sim["grey"])
-                    # Chỉ break giữa chừng khi đứng TRÙNG ô (range=0)
-                    if caught(sim["grey"], sim["prey"], catch_range=0):
-                        sim["running"] = False
-                        break
-                # Sau khi đi đủ tất cả bước, mới check liền kề (range=1)
-                if sim["running"] and caught(sim["grey"], sim["prey"]):
+                sim["prey"] = selectAlgorithm(config["prey_algo"])(current_grid, sim["prey"], sim["predator"])
+                # Chỉ break giữa chừng khi đứng TRÙNG ô (range=0)
+                if caught(sim["predator"], sim["prey"], catch_range=0):
+                    sim["running"] = False
+                # Sau khi đi, mới check liền kề (range=1)
+                elif sim["running"] and caught(sim["predator"], sim["prey"]):
                     sim["running"] = False
                 if sim["running"]:
-                    sim["turn"] = "grey"
+                    sim["turn"] = "predator"
             sim["time"] += 1
             last_step = now
 
@@ -164,7 +162,7 @@ while running:
     elif state == STATE_SIM and sim:
         current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
         draw_grid(screen, current_grid)
-        draw_agents(screen, sim["grey"], sim["prey"], len(grid))
+        draw_agents(screen, sim["predator"], sim["prey"], len(grid))
         draw_sim_ui(screen, font, sim)
         pause_btn.draw(screen, font)
         end_btn.draw(screen, font)

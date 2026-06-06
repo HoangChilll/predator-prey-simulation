@@ -6,7 +6,7 @@ from ui.constants import DIRECTIONS, is_valid
 def flood_fill(grid, start, blocked=None):
     """
     BFS lan ra từ start, đếm tất cả ô có thể đến được.
-    Dùng để đo "không gian sống" của Grey tại mỗi nước đi.
+    Dùng để đo "không gian sống" của Prey tại mỗi nước đi.
     """
     if blocked is None:
         blocked = set()
@@ -27,11 +27,11 @@ def flood_fill(grid, start, blocked=None):
  
 def find_articulation_points(grid, start, blocked=None):
     """
-    Tìm articulation points (điểm thắt cổ chai) trong vùng Grey có thể đến.
+    Tìm articulation points (điểm thắt cổ chai) trong vùng Prey có thể đến.
     Dùng Tarjan iterative để tránh RecursionError trên map lớn.
  
-    AP = ô mà nếu đi qua đó, Grey có thể bị nhốt vào vùng nhỏ hơn.
-    Grey nên TRÁNH đi qua các AP này trừ khi vùng phía sau đủ rộng.
+    AP = ô mà nếu đi qua đó, Prey có thể bị nhốt vào vùng nhỏ hơn.
+    Prey nên TRÁNH đi qua các AP này trừ khi vùng phía sau đủ rộng.
     """
     if blocked is None:
         blocked = set()
@@ -95,73 +95,72 @@ def manhattan(a, b):
  
  
 # ============================================================
-# Hàm phụ riêng cho Grey
+# Hàm phụ riêng cho Prey
 # ============================================================
- 
+
 def component_size_after_crossing(grid, crossing_pos, from_pos, blocked=None):
     """
-    Nếu Grey bước từ from_pos sang crossing_pos (một AP),
+    Nếu Prey bước từ from_pos sang crossing_pos (một AP),
     vùng phía sau crossing_pos có bao nhiêu ô?
- 
+
     Dùng để quyết định: "Ngõ kia tuy là AP nhưng vẫn rộng không?"
- 
+
     Args:
-        crossing_pos: ô AP Grey cân nhắc bước vào
-        from_pos:     vị trí Grey hiện tại (để không flood ngược lại)
- 
+        crossing_pos: ô AP Prey cân nhắc bước vào
+        from_pos:     vị trí Prey hiện tại (để không flood ngược lại)
+
     Returns:
         int — số ô phía sau AP
     """
     if blocked is None:
         blocked = set()
- 
+
     # Coi from_pos là blocked để flood fill chỉ đếm vùng PHÍA TRƯỚC
     blocked_sim = blocked | {from_pos}
     component = flood_fill(grid, crossing_pos, blocked=blocked_sim)
     return len(component)
  
  
-def voronoi_grey_area(grid, grey_pos, pred_pos):
+def voronoi_prey_area(grid, prey_pos, pred_pos):
     """
-    Tính "lãnh thổ Voronoi" của Grey:
-    Số ô mà Grey đến được TRƯỚC Predator (BFS song song từ cả hai).
- 
-    Càng nhiều ô Grey sở hữu → Grey càng an toàn.
- 
+    Tính "lãnh thổ Voronoi" của Prey:
+    Số ô mà Prey đến được TRƯỚC Predator (BFS song song từ cả hai).
+
+    Càng nhiều ô Prey sở hữu → Prey càng an toàn.
+
     Returns:
-        int — số ô thuộc lãnh thổ Grey
+        int — số ô thuộc lãnh thổ Prey
     """
-    grey_territory = set()
-    visited        = {}  # pos -> người đến trước ('grey' hoặc 'pred')
- 
-    # BFS song song: Grey và Predator cùng xuất phát
+    prey_territory = set()
+    visited        = {}  # pos -> người đến trước ('prey' hoặc 'pred')
+
+    # BFS song song: Prey và Predator cùng xuất phát
     queue = deque()
-    queue.append(('grey', grey_pos, 0))
+    queue.append(('prey', prey_pos, 0))
     queue.append(('pred', pred_pos, 0))
-    visited[grey_pos] = 'grey'
+    visited[prey_pos] = 'prey'
     visited[pred_pos] = 'pred'
- 
+
     while queue:
         owner, (x, y), dist = queue.popleft()
-        if owner == 'grey':
-            grey_territory.add((x, y))
- 
+        if owner == 'prey':
+            prey_territory.add((x, y))
+
         for dx, dy in DIRECTIONS:
             nxt = (x + dx, y + dy)
             if nxt not in visited and is_valid(nxt, grid):
                 visited[nxt] = owner
                 queue.append((owner, nxt, dist + 1))
- 
-    return len(grey_territory)
- 
+
+    return len(prey_territory)
  
 # ============================================================
-# Hàm chính — Grey Move
+# Hàm chính — Prey Move
 # ============================================================
  
-def grey_move(grid, self_pos, opponent_pos):
+def prey_move(grid, self_pos, opponent_pos):
     """
-    Heuristic A* cho Grey.
+    Heuristic A* cho Prey.
  
     Chiến lược (ưu tiên theo thứ tự):
       1. Tránh đi vào ô AP mà phía sau là vùng quá nhỏ
@@ -174,41 +173,41 @@ def grey_move(grid, self_pos, opponent_pos):
     Heuristic mỗi bước đi 'move':
         score = - W_AREA     × reachable_area(move)   (tối đa hóa)
                 - W_DIST     × dist(move → predator)   (tối đa hóa)
-                + W_VORONOI  × voronoi_grey_area(move) (tối đa hóa)
+                + W_VORONOI  × voronoi_prey_area(move) (tối đa hóa)
                 + W_AP_PEN   × ap_penalty(move)        (phạt nếu là AP nhỏ)
  
     Args:
         grid:         bản đồ game
-        self_pos:     vị trí Grey hiện tại (tuple)
+        self_pos:     vị trí Prey hiện tại (tuple)
         opponent_pos: vị trí Predator hiện tại (tuple)
  
     Returns:
-        tuple (x, y) — vị trí Grey sẽ di chuyển đến
+        tuple (x, y) — vị trí Prey sẽ di chuyển đến
     """
-    grey_pos = self_pos
+    prey_pos = self_pos
     pred_pos = opponent_pos
  
     # Trọng số — có thể chỉnh tuỳ map
     W_AREA    = 0.5   # ưu tiên vùng rộng
     W_DIST    = 0.3   # ưu tiên xa Predator
-    W_VORONOI = 0.2   # ưu tiên lãnh thổ Voronoi của Grey
+    W_VORONOI = 0.2   # ưu tiên lãnh thổ Voronoi của Prey
     W_AP_PEN  = 0.8   # phạt nặng nếu bước vào AP dẫn vào vùng nhỏ
  
     # Ngưỡng: nếu vùng sau AP nhỏ hơn ngưỡng này → coi là ngõ cụt thực sự
     DEAD_END_THRESHOLD = 8
  
     # --- Các bước đi hợp lệ ---
-    gx, gy = grey_pos
+    px, py = prey_pos
     valid_moves = [
-        (gx + dx, gy + dy)
+        (px + dx, py + dy)
         for dx, dy in DIRECTIONS
-        if is_valid((gx + dx, gy + dy), grid)
+        if is_valid((px + dx, py + dy), grid)
     ]
     if not valid_moves:
-        return grey_pos
+        return prey_pos
  
-    # --- Tìm APs tại vị trí hiện tại của Grey ---
-    art_points = find_articulation_points(grid, grey_pos, blocked={pred_pos})
+    # --- Tìm APs tại vị trí hiện tại của Prey ---
+    art_points = find_articulation_points(grid, prey_pos, blocked={pred_pos})
  
     # --- Đánh giá từng bước đi ---
     scored_moves = []
@@ -222,15 +221,15 @@ def grey_move(grid, self_pos, opponent_pos):
         # 2. Khoảng cách đến Predator (xa hơn → tốt hơn)
         dist_to_pred  = manhattan(move, pred_pos)
  
-        # 3. Voronoi territory của Grey sau khi dời sang 'move'
-        voronoi_area  = voronoi_grey_area(grid, move, pred_pos)
+        # 3. Voronoi territory của Prey sau khi dời sang 'move'
+        voronoi_area  = voronoi_prey_area(grid, move, pred_pos)
  
         # 4. AP penalty
         # Nếu 'move' là một articulation point → kiểm tra vùng phía sau
         ap_penalty = 0.0
         if move in art_points:
             size_behind = component_size_after_crossing(
-                grid, move, from_pos=grey_pos, blocked={pred_pos}
+                grid, move, from_pos=prey_pos, blocked={pred_pos}
             )
             if size_behind < DEAD_END_THRESHOLD:
                 # Ngõ cụt thực sự → phạt nặng
@@ -248,6 +247,9 @@ def grey_move(grid, self_pos, opponent_pos):
         )
  
         scored_moves.append((score, move, area, ap_penalty))
+        print(f"  [Prey] cân nhắc {move}: area={area}, "
+              f"dist_pred={dist_to_pred}, voronoi={voronoi_area}, "
+              f"ap_penalty={ap_penalty:.1f} -> score={score:.2f}")
  
     # --- Chọn bước tốt nhất ---
     # Ưu tiên bước không phải ngõ cụt (ap_penalty < ngưỡng nặng)
@@ -259,7 +261,10 @@ def grey_move(grid, self_pos, opponent_pos):
     else:
         # Mọi bước đều nguy hiểm → chọn bước ít tệ nhất (area lớn nhất)
         best = max(scored_moves, key=lambda x: x[2])
-
+        print("[Prey] Moi buoc deu la AP/ngo cut -> chon vung lon nhat")
+ 
     chosen_move = best[1]
+    print(f"[Prey] pos={prey_pos} -> move={chosen_move} | "
+          f"area={best[2]} | ap_penalty={best[3]:.1f} | score={best[0]:.2f}")
  
     return tuple(chosen_move)

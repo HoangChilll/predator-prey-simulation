@@ -57,7 +57,11 @@ def draw_menu(screen, font, title_font, btn_rect):
     ps = _f(20).render("PREDATOR", True, (205, 135, 135))
     screen.blit(ps, (px_p + 14, rl_y - ps.get_height() // 2))
 
+<<<<<<< HEAD
     # con mồi grey màu xanh
+=======
+    # con mồi màu xanh
+>>>>>>> 88e5035 (update)
     px_q = w // 2 + 60
     glow_q = pygame.Surface((36, 36), pygame.SRCALPHA)
     pygame.draw.circle(glow_q, (40, 200, 100, 60), (18, 18), 16)

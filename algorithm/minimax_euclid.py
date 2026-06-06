@@ -301,11 +301,11 @@ def get_prey_move(map_data, pred_pos, prey_pos, depth=3):
 
 
 
-def prey_minimax_shortest_path(map_data, prey_pos, pred_pos):
-    return get_predator_move(map_data, prey_pos, pred_pos, depth=4)
+def predator_minimax_euclid(map_data, pred_pos, prey_pos):
+    return get_predator_move(map_data, pred_pos, prey_pos, depth=4)
 
 
 
 
-def grey_minimax_shortest_path(map_data, pred_pos, prey_pos):
-    return get_prey_move(map_data, prey_pos, pred_pos, depth=4)
+def prey_minimax_euclid(map_data, prey_pos, pred_pos):
+    return get_prey_move(map_data, pred_pos, prey_pos, depth=4)
