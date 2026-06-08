@@ -22,15 +22,9 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock  = pygame.time.Clock()
 
 # Các tham số ban đầu
-<<<<<<< HEAD
 sim = None  #trạng thái
 grid = None
 dyn_manager = None  # bạt vật cản động
-=======
-sim         = None
-grid        = None
-dyn_manager = None
->>>>>>> ecff02b (update)
 
 step_delay = 1000
 last_step  = pygame.time.get_ticks()
@@ -159,10 +153,7 @@ while running:
                     tracker.set_display([], [])
                     vis["active"] = False
 
-<<<<<<< HEAD
                     # tạo vật cản động
-=======
->>>>>>> ecff02b (update)
                     if config.get("dynamic_obstacle"):
                         dyn_manager = DynamicObstacleManager(grid, seed=42, update_interval=3)
                         log("DYNAMIC OBSTACLE ENABLED (seed=42, interval=3)")
@@ -185,13 +176,6 @@ while running:
     # ── UPDATE ──────────────────────────────────────────────────────────────
     if state == STATE_SIM and sim and sim["running"]:
 
-<<<<<<< HEAD
-            # Cập nhật vật cản động 
-            if dyn_manager:
-                dyn_manager.update(sim["time"], sim["predator"], sim["prey"])
-
-            # Grid động: chứa cả vật cản động (value=2) nếu bật
-=======
         current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
 
         # ── Phase 1: Animation từng ô ──────────────────────────────────────
@@ -274,7 +258,6 @@ while running:
             # Cập nhật vật cản động
             if dyn_manager:
                 dyn_manager.update(sim["time"], sim["predator"], sim["prey"])
->>>>>>> ecff02b (update)
             current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
 
             if sim["turn"] == "predator":

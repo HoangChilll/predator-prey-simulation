@@ -155,18 +155,6 @@ def draw_sim_ui(screen, font, sim):
     _legend_dot(205, (210, 48, 48), (255, 90, 90), "Predator")
     _legend_dot(233, (38, 195, 95), (90, 245, 145), "Prey")
 
-<<<<<<< HEAD
-    pygame.draw.line(screen, (35, 55, 105), (px + 8, 262), (WIDTH - 8, 262), 1)
-
-    # vẽ trạng thái running/stopped
-    screen.blit(_f(16).render("STATUS", True, (90, 125, 182)), (sx, 272))
-    running = sim.get("running", True)
-    st_text  = "RUNNING"   if running else "STOPPED"
-    st_color = (50, 208, 105) if running else (225, 72, 72)
-    screen.blit(_f(19).render(st_text, True, st_color), (sx, 292))
-    pygame.draw.line(screen, (35, 55, 105), (px + 8, 320), (WIDTH - 8, 320), 1)
-    screen.blit(_f(16).render("CONTROLS", True, (90, 125, 182)), (sx, 330))
-=======
     # Visited color legend
     def _legend_rect(y, bg_color, border_color, label):
         r = pygame.Rect(sx + 5, y + 5, 18, 18)
@@ -194,7 +182,6 @@ def draw_sim_ui(screen, font, sim):
 
     # Button area label
     screen.blit(_f(16).render("CONTROLS", True, (90, 125, 182)), (sx, 383))
->>>>>>> ecff02b (update)
 
 
 # vẽ game play
