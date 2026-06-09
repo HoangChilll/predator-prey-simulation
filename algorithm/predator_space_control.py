@@ -157,8 +157,10 @@ def _bfs_dist(grid, start, goal):
 #
 def optimize_move(grid, pred_pos, prey_pos, valid_moves):
 
-    # Chiến lược 1: AP tìm đến điểm thắt cổ chai
+    reachable = flood_fill(grid, prey_pos, blocked={pred_pos})
     art_points = find_articulation_points(grid, prey_pos, blocked={pred_pos})
+
+    # Chiến lược 1: AP tìm đến điểm thắt cổ chai
     valuable_aps = [
         ap for ap in art_points
         if _bfs_dist(grid, pred_pos, ap) <= _bfs_dist(grid, prey_pos, ap)
@@ -171,10 +173,11 @@ def optimize_move(grid, pred_pos, prey_pos, valid_moves):
             # Chỉ dùng AP nếu bước đó không làm predator xa prey hơn
             if _bfs_dist(grid, ap_move, prey_pos) <= _bfs_dist(grid, pred_pos, prey_pos):
                 print(f"[Predator] AP={best_ap} | pos={pred_pos} -> step={ap_move}")
+                set_visited(list(reachable), [pred_pos, ap_move], overlay=reachable, art_points=art_points)
                 return ap_move
 
     # Chiến lược 2: Shrink tìm đến điểm làm giảm không gian sống của prey
-    current_prey_area = len(flood_fill(grid, prey_pos, blocked={pred_pos}))
+    current_prey_area = len(reachable)
     best_move = None
     best_reduction = 0
     visited_order = [pred_pos]
@@ -192,7 +195,7 @@ def optimize_move(grid, pred_pos, prey_pos, valid_moves):
         # (nhất quán với điều kiện guard của chiến lược AP)
         if _bfs_dist(grid, best_move, prey_pos) <= _bfs_dist(grid, pred_pos, prey_pos):
             print(f"[Predator] SHRINK | pos={pred_pos} -> move={best_move} | reduction={best_reduction}")
-            set_visited(visited_order, [pred_pos, best_move])
+            set_visited(list(reachable), [pred_pos, best_move], overlay=reachable, art_points=art_points)
             return best_move
         print(f"[Predator] SHRINK SKIP (would move away from prey) | pos={pred_pos} -> skip={best_move} | reduction={best_reduction}")
 

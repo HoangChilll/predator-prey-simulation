@@ -103,7 +103,7 @@ def run_algo_and_start_vis(current_grid, agent_pos, opp_pos, algo_fn, is_pred,
 
     # Bắt đầu hiển thị ô đầu tiên ngay lập tức
     tracker.set_display(cells_show[:1], [])
-    _, _, score_map = tracker.get_display()
+    _, _, score_map, _, _ = tracker.get_display()
     if score_map:
         vis["cell_delay"] = VIS_CELL_DELAY_SLOW
         vis["hold_after"] = VIS_HOLD_AFTER_SLOW
@@ -142,9 +142,11 @@ while running:
                     # RESET SIM
                     sim = {
                         "predator":          (0, 0),
-                        "prey":              (4, 4),
+                        "prey":              (7, 8),
                         "time":              0,
                         "running":           True,
+                        "paused":            False,
+                        "ended":             False,
                         "turn":              "predator",
                         "predator_last_dir": None,
                     }
@@ -162,14 +164,17 @@ while running:
 
         elif state == STATE_SIM:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if pause_btn.click(event.pos):
-                    sim["running"] = not sim["running"]
+                if pause_btn.click(event.pos) and not sim.get("ended", False):
+                    sim["paused"] = not sim["paused"]
+                    sim["running"] = not sim["paused"]
                     log("PAUSE TOGGLE")
                     last_step = pygame.time.get_ticks()
                 if end_btn.click(event.pos):
                     state = STATE_CONFIG
                     tracker.clear()
                     tracker.set_display([], [])
+                    vis["active"] = False
+                    log("END -> CONFIG")
                     vis["active"] = False
                     log("END -> CONFIG")
 
@@ -244,8 +249,12 @@ while running:
                         sim["prey"] = vis["next_move"]
                         if caught(sim["predator"], sim["prey"], catch_range=0):
                             sim["running"] = False
+                            sim["ended"] = True
+                            sim["paused"] = False
                         elif caught(sim["predator"], sim["prey"]):
                             sim["running"] = False
+                            sim["ended"] = True
+                            sim["paused"] = False
                         if sim["running"]:
                             sim["turn"] = "predator"
                         vis["active"] = False
@@ -300,7 +309,7 @@ while running:
         pause_btn.draw(screen, font)
         end_btn.draw(screen, font)
 
-        if not sim["running"]:
+        if sim.get("ended", False):
             draw_game_over(screen, font, title_font)
 
     pygame.display.flip()

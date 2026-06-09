@@ -87,5 +87,5 @@ class SimpleButton:
 
 # Positioned inside the right-side HUD panel (x=GRID_AREA..WIDTH)
 _bx = GRID_AREA + 25   # 625
-pause_btn = SimpleButton(_bx, 410, 150, 44, "PAUSE")
-end_btn   = SimpleButton(_bx, 468, 150, 44, "END")
+pause_btn = SimpleButton(_bx, 460, 150, 44, "PAUSE")
+end_btn   = SimpleButton(_bx, 524, 150, 44, "END")

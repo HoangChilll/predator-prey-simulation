@@ -239,7 +239,6 @@ def astar_flee(grid, self_pos, opponent_pos):
 
 def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
     """
-    Chiến lược kết hợp File 1 (AP check) + File 3 (danger zone + weighted score).
 
     Pipeline:
       1. Xây dựng danger zone từ pred_speed bước tiếp theo của Predator
@@ -385,13 +384,12 @@ def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
 
 def prey_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
     """
-    Hàm chính thay thế prey_A_star_ap (File 1).
 
     Kết hợp:
-      - Danger zone + pred_speed awareness (File 3)
-      - Articulation Point check (File 1)
-      - Trọng số động theo khoảng cách (mới)
-      - astar_flee fallback (File 3)
+      - Danger zone + pred_speed awareness
+      - Articulation Point check
+      - Trọng số động theo khoảng cách
+      - astar_flee fallback
     """
     nxt = evade_adaptive(grid, self_pos, opponent_pos, pred_speed)
     if nxt is None:
