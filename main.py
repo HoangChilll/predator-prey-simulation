@@ -29,7 +29,7 @@ dyn_manager = None  # bạt vật cản động
 step_delay = 1000
 last_step  = pygame.time.get_ticks()
 
-# ── Tham số visualization (đổi màu từng ô theo thời gian thực) ──────────
+# Tham số visualization
 VIS_CELL_DELAY = 35   # ms mỗi ô khi đang duyệt (35ms ≈ mắt thấy rõ)
 VIS_CELL_DELAY_SLOW = 120
 VIS_HOLD_AFTER = 500  # ms giữ visited trước khi bắt đầu draw path
@@ -71,7 +71,7 @@ def caught(predator, prey, catch_range=1):
 
 def run_algo_and_start_vis(current_grid, agent_pos, opp_pos, algo_fn, is_pred,
                            extra_arg=None):
-                           
+
     tracker.clear()
     try:
         if extra_arg is not None:
@@ -259,7 +259,7 @@ while running:
                         sim["time"] += 1
                         last_step = now
 
-        # Phase 2: Khởi động bước mới (sau step_delay) 
+        # Phase 2: Khởi động bước mới
         elif now - last_step > step_delay:
             # Cập nhật vật cản động
             if dyn_manager:

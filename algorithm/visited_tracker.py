@@ -1,11 +1,11 @@
-# --- Dữ liệu ghi bởi thuật toán (full traversal order) ---
+# Dữ liệu ghi bởi thuật toán 
 _all_visited: list = []
 _all_path: list = []
 _all_scores: dict = {}
 _all_overlay: set = set()
 _all_art_points: set = set()
 
-# --- Dữ liệu hiển thị (được main.py điều khiển từng ô) ---
+#  Dữ liệu hiển thị
 _display_visited: list = []
 _display_path: list = []
 _display_scores: dict = {}
@@ -25,7 +25,7 @@ def set_visited(cells: list, path: list = None, scores: dict = None,
 
 
 def get_all():
-    """Trả về (all_visited, all_path) — toàn bộ kết quả từ thuật toán."""
+    #Trả về (all_visited, all_path) 
     return _all_visited, _all_path
 
 
@@ -50,7 +50,7 @@ def get_display():
 
 
 def clear():
-    """Xóa toàn bộ dữ liệu."""
+    #Xóa toàn bộ dữ liệu
     global _all_visited, _all_path, _all_scores, _all_overlay, _all_art_points
     global _display_visited, _display_path, _display_scores, _display_overlay, _display_art_points
     _all_visited = []
