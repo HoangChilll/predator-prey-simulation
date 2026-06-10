@@ -2,9 +2,7 @@ from collections import deque
 import math
 from algorithm.visited_tracker import set_visited
 
-# ----------------------------------------------------------------------
-# Heuristics & Distance calculation functions
-# ----------------------------------------------------------------------
+
 
 def bfs_distance(start, target, map_data):
     """Tính khoảng cách ngắn nhất bằng BFS giữa hai điểm trên bản đồ."""
@@ -82,15 +80,10 @@ def euclid_evaluate(pred_pos, prey_pos, map_data):
 
 
 # ----------------------------------------------------------------------
-# Minimax Core Algorithm
-# ----------------------------------------------------------------------
+
 
 def minimax(map_data, pred_pos, prey_pos, depth, alpha, beta, is_maximizing, heuristic_fn, visited_nodes=None):
-    """
-    Thuật toán Minimax với Alpha-Beta Pruning.
-    Prey là người chơi Maximizing (muốn tối đa hóa khoảng cách).
-    Predator là người chơi Minimizing (muốn tối thiểu hóa khoảng cách).
-    """
+
     if visited_nodes is None:
         visited_nodes = []
 
@@ -174,9 +167,6 @@ def get_prey_move(map_data, pred_pos, prey_pos, depth, heuristic_fn):
     return best_move
 
 
-# ----------------------------------------------------------------------
-# Public API Wrappers (depth=4)
-# ----------------------------------------------------------------------
 
 # 1. Shortest Path (BFS)
 def predator_minimax_shortest_path(map_data, pred_pos, prey_pos):

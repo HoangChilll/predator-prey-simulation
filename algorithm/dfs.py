@@ -2,33 +2,11 @@ from ui.constants import DIRECTIONS, is_valid
 from algorithm.visited_tracker import set_visited
 
 def heuristic(a, b):
-    """
-    Hàm heuristic dùng Manhattan distance.
-    (Giữ lại để dùng cho logic chạy trốn của Prey)
-
-
-    Input:
-    - a: tọa độ (x1, y1)
-    - b: tọa độ (x2, y2)
-
-
-    Output:
-    - khoảng cách ước lượng từ a đến b
-    """
+    
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def predator_dfs_move(grid, self_pos, opponent_pos):
-    """
-    Thuật toán Depth-First Search (DFS).
-
-    Input chuẩn:
-    - grid: ma trận bản đồ
-    - self_pos: vị trí hiện tại của agent, dạng (x, y)
-    - opponent_pos: vị trí đối thủ, dạng (x, y)
-
-    Output:
-    - vị trí tiếp theo agent sẽ đi, dạng (x, y)
-    """
+    
 
     # Ép về tuple để dùng làm key trong dict/set
     start = tuple(self_pos)

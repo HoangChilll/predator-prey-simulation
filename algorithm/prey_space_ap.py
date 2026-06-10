@@ -5,10 +5,7 @@ from ui.constants import DIRECTIONS, is_valid
 from algorithm.visited_tracker import set_visited
  
 def flood_fill(grid, start, blocked=None):
-    """
-    BFS lan ra từ start, đếm tất cả ô có thể đến được.
-    Dùng để đo "không gian sống" của Prey tại mỗi nước đi.
-    """
+    
     if blocked is None:
         blocked = set()
  
@@ -27,13 +24,7 @@ def flood_fill(grid, start, blocked=None):
  
  
 def find_articulation_points(grid, start, blocked=None):
-    """
-    Tìm articulation points (điểm thắt cổ chai) trong vùng Prey có thể đến.
-    Dùng Tarjan iterative để tránh RecursionError trên map lớn.
- 
-    AP = ô mà nếu đi qua đó, Prey có thể bị nhốt vào vùng nhỏ hơn.
-    Prey nên TRÁNH đi qua các AP này trừ khi vùng phía sau đủ rộng.
-    """
+    
     if blocked is None:
         blocked = set()
  
@@ -95,24 +86,9 @@ def manhattan(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
  
  
-# ============================================================
-# Hàm phụ riêng cho Prey
-# ============================================================
 
 def component_size_after_crossing(grid, crossing_pos, from_pos, blocked=None):
-    """
-    Nếu Prey bước từ from_pos sang crossing_pos (một AP),
-    vùng phía sau crossing_pos có bao nhiêu ô?
-
-    Dùng để quyết định: "Ngõ kia tuy là AP nhưng vẫn rộng không?"
-
-    Args:
-        crossing_pos: ô AP Prey cân nhắc bước vào
-        from_pos:     vị trí Prey hiện tại (để không flood ngược lại)
-
-    Returns:
-        int — số ô phía sau AP
-    """
+    
     if blocked is None:
         blocked = set()
 
@@ -123,15 +99,7 @@ def component_size_after_crossing(grid, crossing_pos, from_pos, blocked=None):
  
  
 def voronoi_prey_area(grid, prey_pos, pred_pos):
-    """
-    Tính "lãnh thổ Voronoi" của Prey:
-    Số ô mà Prey đến được TRƯỚC Predator (BFS song song từ cả hai).
-
-    Càng nhiều ô Prey sở hữu → Prey càng an toàn.
-
-    Returns:
-        int — số ô thuộc lãnh thổ Prey
-    """
+    
     prey_territory = set()
     visited        = {}  # pos -> người đến trước ('prey' hoặc 'pred')
 
@@ -155,36 +123,10 @@ def voronoi_prey_area(grid, prey_pos, pred_pos):
 
     return len(prey_territory)
  
-# ============================================================
-# Hàm chính — Prey Move
-# ============================================================
+
  
 def prey_space_ap(grid, self_pos, opponent_pos):
-    """
-    Heuristic A* cho Prey.
- 
-    Chiến lược (ưu tiên theo thứ tự):
-      1. Tránh đi vào ô AP mà phía sau là vùng quá nhỏ
-         (ngõ cụt thực sự → không đi dù xa Predator hơn)
-      2. Trong các bước đi an toàn → chọn bước nào giữ được
-         không gian sống lớn nhất và xa Predator nhất
-      3. Nếu mọi bước đều là AP → chọn AP có vùng phía sau lớn nhất
-         (buộc phải chọn ít tệ nhất)
- 
-    Heuristic mỗi bước đi 'move':
-        score = - W_AREA     × reachable_area(move)   (tối đa hóa)
-                - W_DIST     × dist(move → predator)   (tối đa hóa)
-                + W_VORONOI  × voronoi_prey_area(move) (tối đa hóa)
-                + W_AP_PEN   × ap_penalty(move)        (phạt nếu là AP nhỏ)
- 
-    Args:
-        grid:         bản đồ game
-        self_pos:     vị trí Prey hiện tại (tuple)
-        opponent_pos: vị trí Predator hiện tại (tuple)
- 
-    Returns:
-        tuple (x, y) — vị trí Prey sẽ di chuyển đến
-    """
+    
     prey_pos = self_pos
     pred_pos = opponent_pos
  

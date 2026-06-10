@@ -19,12 +19,7 @@ def _bfs_path_exists(maze, start, goal):
 
 
 def generate_random_maze(n):
-    """Tạo mê cung ngẫu nhiên n×n đảm bảo có đường từ (0,0) đến (10,10).
-
-    - Tường (1): 40-60% tổng ô.
-    - Start = (0,0), Goal = (10,10).
-    - n phải > 10 (để ô (10,10) tồn tại).
-    """
+   
     if n <= 10:
         raise ValueError(f"n phải > 10 để tồn tại ô (10,10), nhận được n={n}")
 

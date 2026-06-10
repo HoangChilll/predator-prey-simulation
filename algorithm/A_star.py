@@ -4,23 +4,7 @@ from algorithm.visited_tracker import set_visited
 
 
 def predator_astar(grid, self_pos, opponent_pos):
-    """
-    Thuật toán A* (A-Star).
-    Tìm đường ngắn nhất từ Predator đến Prey,
-    nhanh hơn BFS nhờ heuristic định hướng tìm kiếm.
-
-    f(n) = g(n) + h(n)
-    - g(n): chi phí thực tế từ start đến n
-    - h(n): ước lượng Manhattan từ n đến goal
-
-    Input:
-    - grid: ma trận bản đồ
-    - self_pos: vị trí hiện tại của Predator, dạng (x, y)
-    - opponent_pos: vị trí Prey, dạng (x, y)
-
-    Output:
-    - vị trí tiếp theo Predator sẽ đi, dạng (x, y)
-    """
+    
     start = tuple(self_pos)
     goal  = tuple(opponent_pos)
 

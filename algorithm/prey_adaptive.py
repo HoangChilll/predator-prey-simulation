@@ -3,19 +3,13 @@ import heapq
 from ui.constants import DIRECTIONS, is_valid
 from algorithm.visited_tracker import set_visited
 
-# ----------------------------------------------------------------------
-# Tiện ích cơ bản
-# ----------------------------------------------------------------------
 
 def manhattan(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
 def bfs_dist(grid, start, blocked=None):
-    """
-    BFS từ start, trả về dict {pos: distance} tới mọi ô đến được.
-    blocked: tập ô coi như tường (thường là vị trí Predator).
-    """
+   
     if blocked is None:
         blocked = set()
     dist = {}
@@ -35,10 +29,7 @@ def bfs_dist(grid, start, blocked=None):
 
 
 def flood_fill(grid, start, blocked=None, cap=200):
-    """
-    Flood fill từ start, trả về số ô đến được.
-    cap: giới hạn đếm để tránh tốn thời gian trên map lớn.
-    """
+   
     if blocked is None:
         blocked = set()
     if not is_valid(start, grid) or start in blocked:
@@ -66,9 +57,7 @@ def get_neighbors(grid, pos):
     ]
 
 
-# ----------------------------------------------------------------------
-# A* — tìm đường ngắn nhất (dùng làm công cụ phụ và fallback)
-# ----------------------------------------------------------------------
+
 
 def a_star(grid, start, goal, blocked=None):
     """
@@ -100,17 +89,8 @@ def a_star(grid, start, goal, blocked=None):
                 heapq.heappush(open_heap, (ng + manhattan(nb, goal), ng, nb))
     return []
 
-
-# ----------------------------------------------------------------------
-# Articulation Points — phát hiện ngõ cụt (từ File 1)
-# ----------------------------------------------------------------------
-
 def find_articulation_points(grid, start, blocked=None):
-    """
-    Tìm articulation points (điểm thắt cổ chai) trong vùng Prey có thể đến.
-    Dùng Tarjan iterative để tránh RecursionError trên map lớn.
-    AP = ô mà nếu đi qua đó, Prey có thể bị nhốt vào vùng nhỏ hơn.
-    """
+  
     if blocked is None:
         blocked = set()
 
@@ -191,17 +171,9 @@ def component_size_after_crossing(grid, crossing_pos, from_pos, blocked=None):
     return flood_fill(grid, crossing_pos, blocked=blocked_sim)
 
 
-# ----------------------------------------------------------------------
-# Trọng số động theo khoảng cách Predator
-# ----------------------------------------------------------------------
 
 def get_dynamic_weights(dist_to_pred):
-    """
-    Điều chỉnh trọng số theo mức độ nguy hiểm:
-      - Gần (<=3): ưu tiên chạy xa tối đa
-      - Trung bình (<=6): cân bằng
-      - An toàn (>6): ưu tiên giữ không gian sống
-    """
+   
     if dist_to_pred <= 3:
         return dict(DIST=3.0, SPACE=1.0, EXIT=0.8, VOR=0.3, AP_PEN=2.0, DANGER=12.0)
     elif dist_to_pred <= 6:
@@ -210,15 +182,9 @@ def get_dynamic_weights(dist_to_pred):
         return dict(DIST=1.0, SPACE=2.5, EXIT=1.0, VOR=0.8, AP_PEN=0.8, DANGER=6.0)
 
 
-# ----------------------------------------------------------------------
-# Fallback: A* chạy đến ô xa Predator nhất
-# ----------------------------------------------------------------------
 
 def astar_flee(grid, self_pos, opponent_pos):
-    """
-    Fallback khi evade() không tìm được bước đi.
-    Dùng A* chạy đến ô xa Predator nhất.
-    """
+
     pred_field = bfs_dist(grid, opponent_pos)
     my_field   = bfs_dist(grid, self_pos)
     big        = len(grid) * len(grid[0])
@@ -233,32 +199,10 @@ def astar_flee(grid, self_pos, opponent_pos):
     return path[1] if len(path) > 1 else self_pos
 
 
-# ----------------------------------------------------------------------
-# Hàm chính — Prey adaptive
-# ----------------------------------------------------------------------
+
 
 def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
-    """
 
-    Pipeline:
-      1. Xây dựng danger zone từ pred_speed bước tiếp theo của Predator
-      2. Tính trọng số động theo khoảng cách thực tế đến Predator
-      3. Tìm Articulation Points để phát hiện ngõ cụt
-      4. Đánh giá từng bước đi:
-           - Hard filter: loại ô nằm trong tầm Predator (pd <= pred_speed)
-           - AP penalty: phạt nặng nếu bước vào AP dẫn vùng quá nhỏ
-           - Score tổng hợp: DIST + SPACE + EXIT + VOR - AP_PEN - DANGER
-      5. Fallback astar_flee nếu không có bước hợp lệ
-
-    Args:
-        grid:         bản đồ game
-        self_pos:     vị trí Prey hiện tại
-        opponent_pos: vị trí Predator hiện tại
-        pred_speed:   số bước Predator đi được trong 1 lượt
-
-    Returns:
-        tuple (x, y) — vị trí Prey sẽ di chuyển đến
-    """
     prey_pos = self_pos
     pred_pos = opponent_pos
 
@@ -378,19 +322,9 @@ def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
     return chosen
 
 
-# ----------------------------------------------------------------------
-# Entry point (thay thế prey_A_star_ap của File 1)
-# ----------------------------------------------------------------------
 
 def prey_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
-    """
 
-    Kết hợp:
-      - Danger zone + pred_speed awareness
-      - Articulation Point check
-      - Trọng số động theo khoảng cách
-      - astar_flee fallback
-    """
     nxt = evade_adaptive(grid, self_pos, opponent_pos, pred_speed)
     if nxt is None:
         nxt = astar_flee(grid, self_pos, opponent_pos)

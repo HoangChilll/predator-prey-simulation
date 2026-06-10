@@ -3,18 +3,7 @@ from ui.constants import DIRECTIONS, is_valid
 from algorithm.visited_tracker import set_visited
 
 def predator_bfs(grid, self_pos, opponent_pos):
-    """
-    Thuật toán Breadth-First Search (BFS).
-    Tìm đường ngắn nhất từ Predator đến Prey.
-
-    Input:
-    - grid: ma trận bản đồ
-    - self_pos: vị trí hiện tại của Predator, dạng (x, y)
-    - opponent_pos: vị trí Prey, dạng (x, y)
-
-    Output:
-    - vị trí tiếp theo Predator sẽ đi, dạng (x, y)
-    """
+    
     start = tuple(self_pos)
     goal  = tuple(opponent_pos)
 

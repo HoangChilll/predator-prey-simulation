@@ -14,19 +14,7 @@ def heuristic(a, b):
 
 
 def predator_greedy(grid, self_pos, opponent_pos):
-    """
-    Greedy Best-First Search cho con đi săn.
 
-
-    Input:
-    - grid: object có rows, cols, cells
-    - self_pos: vị trí con đi săn
-    - opponent_pos: vị trí con bị săn
-
-
-    Output:
-    - vị trí tiếp theo của con đi săn
-    """
 
 
     start = tuple(self_pos)
@@ -103,19 +91,6 @@ def predator_greedy(grid, self_pos, opponent_pos):
 
 
 def prey_greedy(grid, self_pos, opponent_pos):
-    """
-    Greedy cho Prey.
-
-
-    Input chuẩn:
-    - grid: ma trận bản đồ
-    - self_pos: vị trí hiện tại của prey
-    - opponent_pos: vị trí predator
-
-
-    Ý tưởng:
-    - Prey chọn ô làm khoảng cách tới predator lớn nhất.
-    """
 
 
     start = tuple(self_pos)

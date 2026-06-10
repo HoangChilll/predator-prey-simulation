@@ -71,10 +71,7 @@ def caught(predator, prey, catch_range=1):
 
 def run_algo_and_start_vis(current_grid, agent_pos, opp_pos, algo_fn, is_pred,
                            extra_arg=None):
-    """
-    Chạy thuật toán, lấy kết quả + visited cells, bắt đầu phase animation.
-    Trả về vị trí tiếp theo.
-    """
+                           
     tracker.clear()
     try:
         if extra_arg is not None:
@@ -178,12 +175,12 @@ while running:
                     vis["active"] = False
                     log("END -> CONFIG")
 
-    # ── UPDATE ──────────────────────────────────────────────────────────────
+    # UPDATE 
     if state == STATE_SIM and sim and sim["running"]:
 
         current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
 
-        # ── Phase 1: Animation từng ô ──────────────────────────────────────
+        # Phase 1: Animation từng ô
         if vis["active"]:
             if vis["phase"] == "scan":
                 # Tô từng ô theo cell_delay (chậm hơn nếu có score hiển thị)
@@ -262,7 +259,7 @@ while running:
                         sim["time"] += 1
                         last_step = now
 
-        # ── Phase 2: Khởi động bước mới (sau step_delay) ─────────────────
+        # Phase 2: Khởi động bước mới (sau step_delay) 
         elif now - last_step > step_delay:
             # Cập nhật vật cản động
             if dyn_manager:
@@ -292,7 +289,7 @@ while running:
                     is_pred=False
                 )
 
-    # ── VẼ ──────────────────────────────────────────────────────────────────
+    # VẼ 
     screen.fill((0, 0, 0))
 
     if state == STATE_MENU:

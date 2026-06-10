@@ -4,9 +4,7 @@ from algorithm.visited_tracker import set_visited
 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]   # lên, xuống, trái, phải
 
-# ----------------------------------------------------------------------
-# Tiện ích lưới
-# ----------------------------------------------------------------------
+
 def in_bounds(grid, r, c):
     return 0 <= r < len(grid) and 0 <= c < len(grid[0])
 
@@ -20,9 +18,7 @@ def manhattan(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-# ----------------------------------------------------------------------
-# BFS: khoảng cách ĐƯỜNG-ĐI-THẬT từ 'start' tới mọi ô tới được
-# ----------------------------------------------------------------------
+
 def bfs_dist(grid, start, blocked=None):
     blocked = blocked or set()
     dist = {}
@@ -39,9 +35,7 @@ def bfs_dist(grid, start, blocked=None):
     return dist
 
 
-# ----------------------------------------------------------------------
-# Flood fill: đếm số ô trống tới được từ 'start' (coi 'blocked' là tường).
-# ----------------------------------------------------------------------
+
 def flood_area(grid, start, blocked, cap=120):
     if start in blocked or not is_free(grid, *start):
         return 0
@@ -58,9 +52,7 @@ def flood_area(grid, start, blocked, cap=120):
     return n
 
 
-# ----------------------------------------------------------------------
-# A*: đường ngắn nhất start -> goal. Trả về danh sách ô (rỗng nếu bí).
-# ----------------------------------------------------------------------
+
 def a_star(grid, start, goal):
     if start == goal:
         return [start]
@@ -85,12 +77,7 @@ def a_star(grid, start, goal):
     return []
 
 
-# ----------------------------------------------------------------------
-# NÉ THÔNG MINH (logic chính)
-#   - Vùng nguy hiểm = pred_speed bước tiếp theo của predator + lân cận
-#   - Ngưỡng lọc: pd <= pred_speed (predator đến được trong 1 lượt prey)
-#   - Voronoi: prey cần tới trước predator tính theo tốc độ thực
-# ----------------------------------------------------------------------
+
 W = dict(DIST=2.4, SPACE=1.5, EXIT=1.0, VOR=0.5, WALL=1.0, DANGER=9.0)
 
 def evade(grid, self_pos, opponent_pos, last_dir=None, pred_speed=2):
