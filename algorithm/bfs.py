@@ -6,14 +6,12 @@ def predator_bfs(grid, self_pos, opponent_pos):
     
     start = tuple(self_pos)
     goal  = tuple(opponent_pos)
-
-    # Queue FIFO — đảm bảo tìm đường ngắn nhất
     queue         = deque([(start, [start])])
-    visited       = {start}   # đánh dấu ngay khi THÊM vào queue
+    visited       = {start}   # đánh dấu ngay khi thêm vào queue
     visited_order = []
 
     while queue:
-        current, path = queue.popleft()   # FIFO: lấy node vào trước
+        current, path = queue.popleft()  
         visited_order.append(current)
 
         # Tới Prey thì dừng
@@ -29,6 +27,6 @@ def predator_bfs(grid, self_pos, opponent_pos):
                 visited.add(neighbor)   # đánh dấu sớm, tránh thêm trùng
                 queue.append((neighbor, path + [neighbor]))
 
-    # Không tìm được đường → đứng yên
+    # Không tìm được đường
     set_visited(visited_order, [])
     return start

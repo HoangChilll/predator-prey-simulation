@@ -30,14 +30,13 @@ step_delay = 1000
 last_step  = pygame.time.get_ticks()
 
 # Tham số visualization
-VIS_CELL_DELAY = 35   # ms mỗi ô khi đang duyệt (35ms ≈ mắt thấy rõ)
+VIS_CELL_DELAY = 35  
 VIS_CELL_DELAY_SLOW = 120
-VIS_HOLD_AFTER = 500  # ms giữ visited trước khi bắt đầu draw path
+VIS_HOLD_AFTER = 500  
 VIS_HOLD_AFTER_SLOW = 900
-VIS_PATH_DISPLAY = 300  # ms hiển thị đường path trước khi apply move
+VIS_PATH_DISPLAY = 300  
 VIS_PATH_DISPLAY_SLOW = 650
 
-# Trạng thái animation
 vis = {
     "active":    False,  # đang trong phase visualize hay không
     "cells":     [],     # toàn bộ danh sách ô đã duyệt (từ thuật toán)
@@ -139,7 +138,7 @@ while running:
                     # RESET SIM
                     sim = {
                         "predator":          (0, 0),
-                        "prey":              (7, 8),
+                        "prey":              (9, 9),
                         "time":              0,
                         "running":           True,
                         "paused":            False,
@@ -180,10 +179,10 @@ while running:
 
         current_grid = dyn_manager.get_effective_grid() if dyn_manager else grid
 
-        # Phase 1: Animation từng ô
+        #Animation từng ô
         if vis["active"]:
             if vis["phase"] == "scan":
-                # Tô từng ô theo cell_delay (chậm hơn nếu có score hiển thị)
+                # Tô từng ô theo cell_delay 
                 if now - vis["last_tick"] >= vis["cell_delay"]:
                     vis["idx"]       += 1
                     vis["last_tick"]  = now
@@ -218,6 +217,8 @@ while running:
 
                         if caught(sim["predator"], sim["prey"]):
                             sim["running"] = False
+                            sim["ended"]   = True
+                            sim["paused"]  = False
                             vis["active"]  = False
                             tracker.set_display([], [])
                         else:
@@ -259,7 +260,7 @@ while running:
                         sim["time"] += 1
                         last_step = now
 
-        # Phase 2: Khởi động bước mới
+        # Khởi động bước mới
         elif now - last_step > step_delay:
             # Cập nhật vật cản động
             if dyn_manager:

@@ -2,13 +2,6 @@ import random
 
 
 class DynamicObstacleManager:
-    """
-    Quản lý lớp vật cản động (dynamic obstacle layer) độc lập với bản đồ gốc.
-
-    - static_grid : ma trận gốc (không bị thay đổi)
-    - seed        : seed cố định để đảm bảo reproducibility
-    - update_interval: cứ sau bao nhiêu bước thì cập nhật vật cản
-    """
 
     OBSTACLE_VALUE = 2  # giá trị đánh dấu ô vật cản động trong effective grid
 
@@ -30,12 +23,10 @@ class DynamicObstacleManager:
         self._dirty = True
         self._cached_grid: list[list[int]] | None = None
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+ 
 
     def update(self, step: int, predator_pos: tuple, prey_pos: tuple) -> None:
-        """Gọi sau mỗi bước sim. Chỉ thực sự cập nhật khi đến interval."""
+        #Gọi sau mỗi bước sim.
         if step == 0 or step % self.update_interval != 0:
             return
 
@@ -70,10 +61,7 @@ class DynamicObstacleManager:
                 self._dirty = True
 
     def get_effective_grid(self) -> list[list[int]]:
-        """
-        Trả về bản sao grid với vật cản động được đánh dấu bằng OBSTACLE_VALUE (2).
-        Kết quả được cache lại đến lần update tiếp theo.
-        """
+        #trả về bản sao cùng đánh dấu vật cản động.
         if not self._dirty and self._cached_grid is not None:
             return self._cached_grid
 
@@ -86,7 +74,7 @@ class DynamicObstacleManager:
         return grid
 
     def reset(self) -> None:
-        """Khởi tạo lại toàn bộ về trạng thái ban đầu (cùng seed)."""
+        #trạng thái ban đầu 
         self._rng = random.Random(self.seed)
         self.obstacles = set()
         self._dirty = True

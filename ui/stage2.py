@@ -12,7 +12,7 @@ from ui.grid import grid5x5,grid10x10,grid20x20_2 ,MAZE_20,grid20x20, grid40x40,
 from ui.dropdown import Dropdown, toggle_dropdown, update_dropdown
 from algorithm.random_maze import generate_random_maze
 
-# Trạng thái kích thước mê cung ngẫu nhiên (điều chỉnh qua nút +/-)
+# Trạng thái kích thước mê cung ngẫu nhiên 
 _rand_size = {"value": 20}
 _BTN_SZ = 36
 _RAND_CTR_Y = int(HEIGHT * 0.50)
@@ -249,12 +249,12 @@ def create_ui():
 
     dropdowns = {
         "prey": Dropdown(
-            ["random", "prey_greedy", "prey_space_ap", "prey_weighted_evade", "prey_adaptive", "prey_minimax_shortest", "prey_minimax_euclid"],
-            buttons[0].rect.x, buttons[0].rect.y + btn_height + 5
+            ["random", "prey_greedy", "pspaceap", "pweightedevade", "prey_adaptive", "pminimaxshortest", "pminimaxeuclid"],
+            buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
         ),
         "pred": Dropdown(
             ["random", "pred_greedy", "pred_dfs", "pred_control", "pred_a_star", "pred_bfs", "pred_minimax_shortest", "pred_minimax_euclid"],
-            buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
+            buttons[0].rect.x, buttons[0].rect.y + btn_height + 5
         ),
         "grid": Dropdown(
             ["5", "10_1", "20_2", "20_1", "20", "40", "40_2", "random"],

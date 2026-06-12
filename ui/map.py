@@ -176,9 +176,9 @@ def draw_sim_ui(screen, font, sim):
         pygame.draw.rect(screen, border_color, r, 2)
         screen.blit(_f(16).render(label, True, (185, 188, 205)), (sx + 28, y + 6))
 
-    _legend_rect(261, (80, 130, 255),  (60, 120, 220),  "Duyệt")
+    _legend_rect(261, (80, 130, 255),  (60, 120, 220),  "Find")
     _legend_rect(284, (90, 200, 255),  (80, 175, 230),  "Reachable")
-    _legend_rect(307, (255, 210, 60), (255, 195, 30), "Đường đi")
+    _legend_rect(307, (255, 210, 60), (255, 195, 30), "Path")
     _legend_dot(333, (235, 90, 90), (255, 140, 120), "Articulation")
 
     # Divider 2

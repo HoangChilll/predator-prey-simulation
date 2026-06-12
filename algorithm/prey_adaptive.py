@@ -60,9 +60,7 @@ def get_neighbors(grid, pos):
 
 
 def a_star(grid, start, goal, blocked=None):
-    """
-    Trả về danh sách ô từ start -> goal (rỗng nếu không tìm được).
-    """
+    #trả về đường đi 
     if blocked is None:
         blocked = set()
     if start == goal:
@@ -160,11 +158,7 @@ def find_articulation_points(grid, start, blocked=None):
 
 
 def component_size_after_crossing(grid, crossing_pos, from_pos, blocked=None):
-    """
-    Nếu Prey bước từ from_pos sang crossing_pos (một AP),
-    vùng phía sau crossing_pos có bao nhiêu ô?
-    Dùng để quyết định: "Ngõ kia tuy là AP nhưng vẫn rộng không?"
-    """
+
     if blocked is None:
         blocked = set()
     blocked_sim = blocked | {from_pos}
@@ -206,11 +200,11 @@ def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
     prey_pos = self_pos
     pred_pos = opponent_pos
 
-    # --- Khoảng cách thực tế (BFS) ---
     pred_field = bfs_dist(grid, pred_pos)
     dist_real  = pred_field.get(prey_pos, 999)
 
-    # --- Danger zone: các ô Predator sẽ chiếm trong pred_speed bước ---
+    # các ô Predator sẽ chiếm 
+    
     pred_path = a_star(grid, pred_pos, prey_pos)
     danger = {pred_pos}
     for i in range(1, pred_speed + 1):
@@ -224,16 +218,16 @@ def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
         for nb in get_neighbors(grid, pred_last):
             danger.add(nb)
 
-    # --- Trọng số động ---
+    #  Trọng số động
     W = get_dynamic_weights(dist_real)
 
-    # --- Articulation Points ---
+    # Articulation Points 
     art_points = find_articulation_points(grid, prey_pos, blocked={pred_pos})
 
-    # --- Ngưỡng ngõ cụt ---
+    # Ngưỡng ngõ cụt 
     DEAD_END_THRESHOLD = 8
 
-    # --- Các bước đi hợp lệ ---
+    # Các bước đi hợp lệ
     candidates = get_neighbors(grid, prey_pos)
     visited_cells = [prey_pos] + [c for c in candidates if c != pred_pos]
     if not candidates:
@@ -248,36 +242,36 @@ def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
 
         pd = pred_field.get(c, 999)
 
-        # Hard filter: loại ô nằm trong tầm Predator
+        # loại ô nằm trong tầm Predator
         if pd <= pred_speed and len(candidates) > 1:
             continue
 
-        # --- AP penalty (từ File 1) ---
+        # AP penalty 
         ap_penalty = 0.0
         if c in art_points:
             size_behind = component_size_after_crossing(
                 grid, c, from_pos=prey_pos, blocked={pred_pos}
             )
             if size_behind < DEAD_END_THRESHOLD:
-                # Ngõ cụt thực sự → phạt rất nặng
+                # Ngõ cụt thực sự  phạt rất nặng
                 ap_penalty = (DEAD_END_THRESHOLD - size_behind) * 10
             else:
-                # AP nhưng vùng sau còn rộng → phạt nhẹ
+                # AP nhưng vùng sau còn rộng phạt nhẹ
                 ap_penalty = 2.0
 
-        # --- Các chỉ số đánh giá ---
+        #  Các chỉ số đánh giá 
         space  = flood_fill(grid, c, blocked=danger)       # vùng sống tránh danger
         exits  = len(get_neighbors(grid, c))               # số lối thoát
         pd_eff = pd if pd != float('inf') else 999
 
-        # Voronoi: ô Prey đến trước Predator (tính theo tốc độ)
+        # Voronoi: ô Prey đến trước Predator 
         my_field = bfs_dist(grid, c)
         owned = sum(
             1 for cell, d in my_field.items()
             if d * pred_speed < pred_field.get(cell, float('inf'))
         )
 
-        # --- Score tổng hợp (cao hơn = tốt hơn) ---
+        #Score tổng hợp 
         score = (
               W["DIST"]  * pd_eff
             + W["SPACE"] * space
@@ -286,37 +280,29 @@ def evade_adaptive(grid, self_pos, opponent_pos, pred_speed=2):
             - W["AP_PEN"] * ap_penalty
         )
 
-        # Phạt thêm nếu bước vào vùng nguy hiểm
+        # Phạt  nếu bước vào vùng nguy hiểm
         if c in danger:
             score -= W["DANGER"]
 
         scored.append((score, c, space, ap_penalty))
-        print(f"  [Prey] cân nhắc {c}: pd={pd}, space={space}, "
-              f"exits={exits}, voronoi={owned}, "
-              f"ap_penalty={ap_penalty:.1f}, score={score:.2f}")
 
     if not scored:
-        print("[Prey] Không có bước hợp lệ → fallback astar_flee")
         fallback = astar_flee(grid, prey_pos, pred_pos)
         set_visited([prey_pos], [prey_pos, fallback])
         return fallback
 
     score_map = {cell: score for score, cell, _, _ in scored}
 
-    # --- Ưu tiên bước không phải ngõ cụt thực sự ---
+    # Ưu tiên bước không phải ngõ cụt 
     safe = [(s, c, a, p) for s, c, a, p in scored if p < 5.0]
 
     if safe:
         best = max(safe, key=lambda x: x[0])
     else:
-        # Mọi bước đều nguy hiểm → chọn vùng sống lớn nhất
+        #  chọn vùng sống lớn nhất
         best = max(scored, key=lambda x: x[2])
-        print("[Prey] Mọi bước đều là AP/ngõ cụt → chọn vùng lớn nhất")
 
     chosen = best[1]
-    print(f"[Prey] pos={prey_pos} -> move={chosen} | "
-          f"space={best[2]} | ap_penalty={best[3]:.1f} | score={best[0]:.2f} | "
-          f"dist_pred={dist_real} | weights=DIST:{W['DIST']}/SPACE:{W['SPACE']}")
 
     set_visited(visited_cells, [prey_pos, chosen], scores=score_map)
     return chosen

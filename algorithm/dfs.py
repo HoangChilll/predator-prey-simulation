@@ -23,18 +23,10 @@ def predator_dfs_move(grid, self_pos, opponent_pos):
     while stack:
         # Lấy node ở đỉnh Stack
         current, path = stack.pop()
-
-
-        # Bỏ qua nếu đã duyệt qua ô này
         if current in visited:
             continue
-           
-        # Đánh dấu đã thăm
         visited.add(current)
         visited_order.append(current)
-
-
-        # Nếu tới đích thì dừng
         if current == goal:
             # Ghi visited để visualize
             set_visited(visited_order, path)
@@ -43,14 +35,10 @@ def predator_dfs_move(grid, self_pos, opponent_pos):
                 return path[1]
             return start
 
-
         x, y = current
-
-
         # Duyệt 4 ô lân cận
         for dx, dy in DIRECTIONS:
             neighbor = (x + dx, y + dy)
-
 
             # Chỉ xét ô hợp lệ và chưa đi qua
             if is_valid(neighbor, grid) and neighbor not in visited:

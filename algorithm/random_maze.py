@@ -28,8 +28,7 @@ def generate_random_maze(n):
     max_walls = int(total * 0.6)
 
     for _ in range(200):
-        # Bước 1: Tạo đường đi ngẫu nhiên từ (0,0) đến (10,10)
-        # Dùng đúng 10 bước xuống + 10 bước phải, xáo trộn thứ tự
+        # tạo đường đi ngẫu nhiên
         moves = [(1, 0)] * 10 + [(0, 1)] * 10
         random.shuffle(moves)
 
@@ -40,7 +39,7 @@ def generate_random_maze(n):
             r, c = r + dr, c + dc
             path_cells.add((r, c))
 
-        # Bước 2: Với các ô còn lại, phân bổ tường để đạt tỉ lệ 40-60%
+        # tô tường với tỉ lệ để đạt tỉ lệ 40-60%
         remaining = [(i, j) for i in range(n) for j in range(n) if (i, j) not in path_cells]
         random.shuffle(remaining)
 
@@ -53,14 +52,14 @@ def generate_random_maze(n):
             for i in range(n)
         ]
 
-        # Bước 3: Kiểm tra BFS và tỉ lệ tường
+        #kiểm tra lại
         if not _bfs_path_exists(maze, (0, 0), (10, 10)):
             continue
         actual_walls = sum(maze[i][j] for i in range(n) for j in range(n))
         if min_walls <= actual_walls <= max_walls:
             return maze
 
-    # Fallback: đường L-shape đơn giản nếu vẫn không thỏa sau 200 lần
+    # quay về maze mặc định nếu không tìm được maze phù hợp sau 200 lần thử
     maze = [[1] * n for _ in range(n)]
     for col in range(11):
         maze[0][col] = 0

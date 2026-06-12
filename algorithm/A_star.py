@@ -44,6 +44,6 @@ def predator_astar(grid, self_pos, opponent_pos):
                 f_new = tentative_g + heuristic(neighbor, goal)
                 heapq.heappush(open_heap, (f_new, tentative_g, neighbor, path + [neighbor]))
 
-    # Không tìm được đường → đứng yên
+    # Không tìm được đường 
     set_visited(visited_order, [])
     return start

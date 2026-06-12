@@ -27,11 +27,11 @@ ALGORITHMS = {
 
     # Prey algorithms
     "prey_greedy": prey_greedy,
-    "prey_space_ap": prey_space_ap,
-    "prey_weighted_evade": prey_weighted_evade,
+    "pspaceap": prey_space_ap,
+    "pweightedevade": prey_weighted_evade,
     "prey_adaptive": prey_adaptive,
-    "prey_minimax_shortest": prey_minimax_shortest_path,
-    "prey_minimax_euclid": prey_minimax_euclid,
+    "pminimaxshortest": prey_minimax_shortest_path,
+    "pminimaxeuclid": prey_minimax_euclid,
 }
 def selectAlgorithm(name):
     if name not in ALGORITHMS:

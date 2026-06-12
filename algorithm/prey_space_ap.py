@@ -101,7 +101,7 @@ def component_size_after_crossing(grid, crossing_pos, from_pos, blocked=None):
 def voronoi_prey_area(grid, prey_pos, pred_pos):
     
     prey_territory = set()
-    visited        = {}  # pos -> người đến trước ('prey' hoặc 'pred')
+    visited        = {}  # pos -> người đến trước 
 
     # BFS song song: Prey và Predator cùng xuất phát
     queue = deque()
@@ -136,10 +136,10 @@ def prey_space_ap(grid, self_pos, opponent_pos):
     W_VORONOI = 0.2   # ưu tiên lãnh thổ Voronoi của Prey
     W_AP_PEN  = 0.8   # phạt nặng nếu bước vào AP dẫn vào vùng nhỏ
  
-    # Ngưỡng: nếu vùng sau AP nhỏ hơn ngưỡng này → coi là ngõ cụt thực sự
+    # nếu vùng sau AP nhỏ hơn ngưỡng này  coi là ngõ cụt thực sự
     DEAD_END_THRESHOLD = 8
  
-    # --- Các bước đi hợp lệ ---
+    #Các bước đi hợp lệ
     px, py = prey_pos
     valid_moves = [
         (px + dx, py + dy)
@@ -149,39 +149,37 @@ def prey_space_ap(grid, self_pos, opponent_pos):
     if not valid_moves:
         return prey_pos
  
-    # --- Tìm APs tại vị trí hiện tại của Prey ---
     art_points = find_articulation_points(grid, prey_pos, blocked={pred_pos})
- 
-    # --- Đánh giá từng bước đi ---
+
     scored_moves = []
  
     for move in valid_moves:
  
-        # 1. Đo "không gian sống" nếu đi đến 'move'
+        # 1. Đo không gian sống nếu đi đến move
         reachable     = flood_fill(grid, move, blocked={pred_pos})
         area          = len(reachable)
  
-        # 2. Khoảng cách đến Predator (xa hơn → tốt hơn)
+        # 2. Khoảng cách đến Predator 
         dist_to_pred  = manhattan(move, pred_pos)
  
         # 3. Voronoi territory của Prey sau khi dời sang 'move'
         voronoi_area  = voronoi_prey_area(grid, move, pred_pos)
  
         # 4. AP penalty
-        # Nếu 'move' là một articulation point → kiểm tra vùng phía sau
+        # Nếu move là một articulation point → kiểm tra vùng phía sau
         ap_penalty = 0.0
         if move in art_points:
             size_behind = component_size_after_crossing(
                 grid, move, from_pos=prey_pos, blocked={pred_pos}
             )
             if size_behind < DEAD_END_THRESHOLD:
-                # Ngõ cụt thực sự → phạt nặng
+                # Ngõ cụt thực sự  phạt nặng
                 ap_penalty = (DEAD_END_THRESHOLD - size_behind) * 10
             else:
-                # AP nhưng vùng sau vẫn rộng → phạt nhẹ
+                # AP nhưng vùng sau vẫn rộng  phạt nhẹ
                 ap_penalty = 2.0
  
-        # 5. Tổng hợp score (score THẤP = tốt hơn)
+        # 5. Tổng hợp score
         score = (
             - W_AREA    * area
             - W_DIST    * dist_to_pred
@@ -190,27 +188,20 @@ def prey_space_ap(grid, self_pos, opponent_pos):
         )
  
         scored_moves.append((score, move, area, ap_penalty))
-        print(f"  [Prey] cân nhắc {move}: area={area}, "
-              f"dist_pred={dist_to_pred}, voronoi={voronoi_area}, "
-              f"ap_penalty={ap_penalty:.1f} -> score={score:.2f}")
  
-    # --- Chọn bước tốt nhất ---
-    # Ưu tiên bước không phải ngõ cụt (ap_penalty < ngưỡng nặng)
+    # Chọn bước tốt nhất
+    # Ưu tiên bước không phải ngõ cụt
     safe_moves = [(s, m, a, p) for s, m, a, p in scored_moves if p < 5.0]
  
     if safe_moves:
-        # Trong các bước an toàn → chọn score thấp nhất
+        # Trong các bước an toàn chọn score thấp nhất
         best = min(safe_moves, key=lambda x: x[0])
     else:
-        # Mọi bước đều nguy hiểm → chọn bước ít tệ nhất (area lớn nhất)
+        # Mọi bước đều nguy hiểm chọn bước ít tệ nhất
         best = max(scored_moves, key=lambda x: x[2])
-        print("[Prey] Moi buoc deu la AP/ngo cut -> chon vung lon nhat")
  
     chosen_move = best[1]
-    print(f"[Prey] pos={prey_pos} -> move={chosen_move} | "
-          f"area={best[2]} | ap_penalty={best[3]:.1f} | score={best[0]:.2f}")
-
-    # Ghi visited: các bước đi được cân nhắc + vị trí hiện tại
+    # Ghi visited các bước đi được cân nhắc + vị trí hiện tại
     visited_cells = [prey_pos] + valid_moves
     set_visited(visited_cells, [prey_pos, chosen_move])
 

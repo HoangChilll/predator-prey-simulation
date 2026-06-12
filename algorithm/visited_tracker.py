@@ -1,3 +1,4 @@
+
 # Dữ liệu ghi bởi thuật toán 
 _all_visited: list = []
 _all_path: list = []

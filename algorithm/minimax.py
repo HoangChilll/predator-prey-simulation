@@ -5,7 +5,7 @@ from algorithm.visited_tracker import set_visited
 
 
 def bfs_distance(start, target, map_data):
-    """Tính khoảng cách ngắn nhất bằng BFS giữa hai điểm trên bản đồ."""
+    #khảng cách min giữa 2 điểm =bfs
     if start == target:
         return 0
     
