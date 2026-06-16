@@ -22,8 +22,8 @@ ALGORITHMS = {
     "pred_bfs": predator_bfs,
     "pred_a_star": predator_astar,
     "pred_control": predator_space_control,
-    "pred_minimax_shortest": predator_minimax_shortest_path,
-    "pred_minimax_euclid": predator_minimax_euclid,
+    "minimaxshortest": predator_minimax_shortest_path,
+    "minimaxeuclid": predator_minimax_euclid,
 
     # Prey algorithms
     "prey_greedy": prey_greedy,

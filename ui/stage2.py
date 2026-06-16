@@ -253,7 +253,7 @@ def create_ui():
             buttons[1].rect.x, buttons[1].rect.y + btn_height + 5
         ),
         "pred": Dropdown(
-            ["random", "pred_greedy", "pred_dfs", "pred_control", "pred_a_star", "pred_bfs", "pred_minimax_shortest", "pred_minimax_euclid"],
+            ["random", "pred_greedy", "pred_dfs", "pred_control", "pred_a_star", "pred_bfs", "minimaxshortest", "minimaxeuclid"],
             buttons[0].rect.x, buttons[0].rect.y + btn_height + 5
         ),
         "grid": Dropdown(

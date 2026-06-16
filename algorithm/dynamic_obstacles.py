@@ -42,7 +42,7 @@ class DynamicObstacleManager:
             action = self._rng.choice(["add", "add", "remove"])
 
         if action == "remove":
-            # sorted để đảm bảo thứ tự deterministic
+            # sorted để đảm bảo thứ tự cố định khi chọn ngẫu nhiên, giúp tái tạo kết quả nhất quán
             victim = self._rng.choice(sorted(self.obstacles))
             self.obstacles.discard(victim)
             self._dirty = True
